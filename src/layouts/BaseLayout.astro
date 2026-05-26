@@ -1,0 +1,93 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  canonicalUrl?: string;
+  breadcrumbs?: { label: string; href: string }[];
+}
+
+const {
+  title = 'PortaFácil — Especialistas em Porta de Enrolar em Todo o Brasil',
+  description = 'Encontre profissionais verificados para instalação e manutenção de portas de aço de enrolar automáticas e manuais na sua cidade.',
+  image = '/og-image.jpg',
+  type = 'website',
+  breadcrumbs = [],
+} = Astro.props;
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://portafacil.com.br';
+const canonical = `${siteUrl}${Astro.url.pathname}`;
+const absoluteImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
+
+const orgJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'PortaFácil',
+  url: siteUrl,
+  logo: `${siteUrl}/logo.svg`,
+  description: 'Marketplace de especialistas em porta de enrolar automática e manual no Brasil.',
+  sameAs: [
+    'https://instagram.com/portafacil',
+    'https://facebook.com/portafacil',
+    'https://linkedin.com/company/portafacil',
+  ],
+};
+
+const breadcrumbJsonLd = breadcrumbs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbs.map((b, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: b.label,
+    item: `${siteUrl}${b.href}`,
+  })),
+} : null;
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={absoluteImage} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:type" content={type} />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:site_name" content="PortaFácil" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={absoluteImage} />
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify(orgJsonLd)} />
+  {breadcrumbJsonLd && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />}
+</head>
+<body>
+  <slot />
+</body>
+</html>

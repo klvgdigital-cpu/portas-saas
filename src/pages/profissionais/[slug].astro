@@ -1,0 +1,229 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getProfissionalBySlug, getAvaliacoes } from '../../lib/supabase';
+
+const { slug } = Astro.params;
+
+let profissional, avaliacoes = [];
+try {
+  profissional = await getProfissionalBySlug(slug!);
+  avaliacoes = await getAvaliacoes(profissional.id);
+} catch {
+  return Astro.redirect('/profissionais');
+}
+
+const mediaNotas = avaliacoes.length > 0
+  ? (avaliacoes.reduce((s, a) => s + a.nota, 0) / avaliacoes.length).toFixed(1)
+  : null;
+
+const tiposLabel: Record<string, string> = {
+  automatica: 'Automática',
+  manual: 'Manual',
+  ambas: 'Automática e Manual',
+};
+
+const initials = profissional.nome.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+
+const localBusinessJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: profissional.nome,
+  description: profissional.descricao,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: profissional.cidade,
+    addressRegion: profissional.estado,
+    addressCountry: 'BR',
+  },
+  telephone: profissional.whatsapp,
+  ...(mediaNotas && {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: mediaNotas,
+      reviewCount: avaliacoes.length,
+    },
+  }),
+};
+---
+<BaseLayout
+  title={`${profissional.nome} — Especialista em Porta de Enrolar em ${profissional.cidade}`}
+  description={profissional.descricao.slice(0, 155)}
+  image={profissional.foto_url ?? undefined}
+  breadcrumbs={[
+    {label:'Home', href:'/'},
+    {label:'Profissionais', href:'/profissionais'},
+    {label:profissional.nome, href:`/profissionais/${slug}`},
+  ]}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(localBusinessJsonLd)} slot="head" />
+  <Header />
+
+  <main class="section">
+    <div class="container max-w-4xl">
+
+      <!-- Perfil -->
+      <div class="card mb-6">
+        <div class="flex flex-col sm:flex-row items-start gap-6">
+          <!-- Foto -->
+          <div class="w-24 h-24 rounded-2xl overflow-hidden bg-primary-50 flex items-center justify-center shrink-0">
+            {profissional.foto_url
+              ? <img src={profissional.foto_url} alt={`Foto de ${profissional.nome}`} class="w-full h-full object-cover" width="96" height="96" />
+              : <span class="text-primary-600 font-bold text-2xl">{initials}</span>
+            }
+          </div>
+
+          <!-- Dados -->
+          <div class="flex-1">
+            <div class="flex items-start justify-between flex-wrap gap-3">
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900">{profissional.nome}</h1>
+                <p class="text-gray-500 flex items-center gap-1 mt-1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  {profissional.cidade}, {profissional.estado}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {profissional.plano === 'pro' && (
+                  <span class="badge-verificado">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Verificado
+                  </span>
+                )}
+                <span class="badge-pro">{tiposLabel[profissional.tipos_porta]}</span>
+              </div>
+            </div>
+
+            {mediaNotas && (
+              <div class="flex items-center gap-2 mt-3">
+                <div class="stars">
+                  {Array.from({length: 5}).map((_, i) => (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill={i < Math.round(Number(mediaNotas)) ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  ))}
+                </div>
+                <span class="text-sm font-medium text-gray-700">{mediaNotas}</span>
+                <span class="text-sm text-gray-400">({avaliacoes.length} avaliações)</span>
+              </div>
+            )}
+
+            <p class="text-sm text-gray-500 mt-2">
+              {profissional.anos_experiencia}+ anos de experiência
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Coluna principal -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Descrição -->
+          <div class="card">
+            <h2 class="text-lg font-semibold text-gray-900 mb-3">Sobre o profissional</h2>
+            <p class="text-gray-600 leading-relaxed">{profissional.descricao}</p>
+          </div>
+
+          <!-- Portfólio -->
+          {profissional.portfolio_urls?.length > 0 && (
+            <div class="card">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4">Trabalhos realizados</h2>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {profissional.portfolio_urls.map((url: string, i: number) => (
+                  <img
+                    src={url}
+                    alt={`Trabalho realizado por ${profissional.nome} — foto ${i + 1}`}
+                    class="w-full aspect-square object-cover rounded-lg"
+                    loading="lazy"
+                    width="200"
+                    height="200"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <!-- Avaliações -->
+          <div class="card">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+              Avaliações {avaliacoes.length > 0 && `(${avaliacoes.length})`}
+            </h2>
+            {avaliacoes.length === 0 ? (
+              <p class="text-gray-400 text-sm">Ainda sem avaliações.</p>
+            ) : (
+              <div class="space-y-4">
+                {avaliacoes.map(av => (
+                  <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-medium text-sm text-gray-900">{av.nome_cliente}</span>
+                      <div class="stars">
+                        {Array.from({length: av.nota}).map(() => (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        ))}
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-600">{av.comentario}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Sidebar CTA -->
+        <div class="space-y-4">
+          <div class="card bg-primary-50 border-primary-200">
+            <h2 class="font-semibold text-primary-900 mb-4">Solicitar orçamento</h2>
+            <form id="form-orcamento" class="space-y-3">
+              <input type="hidden" name="profissional_id" value={profissional.id} />
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Seu nome</label>
+                <input type="text" name="nome" required class="input-field bg-white text-sm" placeholder="Nome completo" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Telefone / WhatsApp</label>
+                <input type="tel" name="telefone" required class="input-field bg-white text-sm" placeholder="(11) 99999-0000" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Tipo de serviço</label>
+                <select name="tipo_servico" class="input-field bg-white text-sm">
+                  <option>Manutenção / reparo</option>
+                  <option>Instalação nova</option>
+                  <option>Motorização</option>
+                  <option>Emergência</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Descreva o problema</label>
+                <textarea name="descricao" rows="3" class="input-field bg-white text-sm resize-none" placeholder="Ex: porta não abre, barulho no motor..."></textarea>
+              </div>
+              <button type="submit" class="btn-primary w-full text-sm">
+                Enviar solicitação
+              </button>
+            </form>
+          </div>
+
+          {profissional.plano === 'pro' && (
+            <div class="card border-accent-200 bg-orange-50">
+              <h3 class="font-semibold text-gray-900 mb-2 text-sm">Agendamento online</h3>
+              <p class="text-xs text-gray-500 mb-3">Escolha uma data e hora para a visita técnica.</p>
+              <a href={`/agendar/${profissional.slug}`} class="btn-primary w-full text-sm text-center block">
+                Agendar visita
+              </a>
+            </div>
+          )}
+
+          <div class="card">
+            <h3 class="font-semibold text-gray-900 mb-3 text-sm">Área de atendimento</h3>
+            <p class="text-sm text-gray-600 flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {profissional.cidade} e região — {profissional.estado}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,12 @@
+{
+  "name": "PortaFácil",
+  "short_name": "PortaFácil",
+  "description": "Encontre especialistas em porta de enrolar perto de você",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a5f",
+  "theme_color": "#1e3a5f",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

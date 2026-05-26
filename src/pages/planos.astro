@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const planos = [
+  {
+    id: 'basico',
+    nome: 'Plano Básico',
+    preco: 'R$ 79',
+    periodo: '/mês',
+    descricao: 'Ideal para começar a receber clientes na plataforma.',
+    destaque: false,
+    recursos: [
+      { texto: 'Perfil ativo na plataforma', incluso: true },
+      { texto: 'Até 10 leads por mês', incluso: true },
+      { texto: 'Fotos do portfólio (até 5)', incluso: true },
+      { texto: 'Recebe avaliações de clientes', incluso: true },
+      { texto: 'Destaque nos resultados de busca', incluso: false },
+      { texto: 'Agendamento online', incluso: false },
+      { texto: 'Selo "Verificado"', incluso: false },
+      { texto: 'Leads ilimitados', incluso: false },
+    ],
+    cta: 'Começar agora',
+    href: '/cadastro-profissional?plano=basico',
+  },
+  {
+    id: 'pro',
+    nome: 'Plano Pro',
+    preco: 'R$ 149',
+    periodo: '/mês',
+    descricao: 'Para profissionais que querem crescer e dominar sua região.',
+    destaque: true,
+    recursos: [
+      { texto: 'Perfil ativo na plataforma', incluso: true },
+      { texto: 'Leads ilimitados por mês', incluso: true },
+      { texto: 'Fotos do portfólio (até 20)', incluso: true },
+      { texto: 'Recebe avaliações de clientes', incluso: true },
+      { texto: 'Destaque nos resultados de busca', incluso: true },
+      { texto: 'Agendamento online', incluso: true },
+      { texto: 'Selo "Verificado"', incluso: true },
+      { texto: 'Suporte prioritário', incluso: true },
+    ],
+    cta: 'Assinar Plano Pro',
+    href: '/cadastro-profissional?plano=pro',
+  },
+];
+
+const faqs = [
+  { p: 'Preciso pagar comissão por serviço realizado?', r: 'Não. Você paga apenas a mensalidade do plano escolhido. Não há cobrança por lead recebido nem comissão sobre os serviços realizados.' },
+  { p: 'Posso cancelar quando quiser?', r: 'Sim. Você pode cancelar a qualquer momento pelo painel do profissional, sem multa ou fidelidade.' },
+  { p: 'Quando meu perfil fica ativo?', r: 'Após o cadastro e aprovação da equipe PortaFácil (em até 24h úteis), seu perfil fica imediatamente visível para os clientes.' },
+  { p: 'Posso fazer upgrade do plano depois?', r: 'Sim. Você pode fazer upgrade ou downgrade a qualquer momento pelo seu painel.' },
+  { p: 'Como recebo os leads?', r: 'Você recebe uma notificação por e-mail e WhatsApp com os dados do cliente assim que ele solicitar um orçamento.' },
+];
+---
+<BaseLayout
+  title="Planos para Profissionais — PortaFácil"
+  description="Cadastre-se na PortaFácil e comece a receber clientes que precisam de porta de enrolar na sua cidade. Escolha o plano ideal para o seu negócio."
+  breadcrumbs={[{label:'Home',href:'/'},{label:'Planos',href:'/planos'}]}
+>
+  <Header />
+  <main>
+
+    <!-- Hero -->
+    <section class="bg-primary-600 text-white py-14 md:py-20">
+      <div class="container text-center max-w-3xl mx-auto">
+        <h1 class="text-white mb-4">Receba clientes que precisam de porta de enrolar na sua cidade</h1>
+        <p class="text-primary-100 text-lg leading-relaxed">
+          Sem comissão por serviço. Sem fidelidade. Cancele quando quiser. Comece a receber leads hoje.
+        </p>
+      </div>
+    </section>
+
+    <!-- Planos -->
+    <section class="section bg-gray-50">
+      <div class="container">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {planos.map(plano => (
+            <div class={`card flex flex-col ${plano.destaque ? 'border-2 border-accent-500 relative' : ''}`}>
+              {plano.destaque && (
+                <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wide">
+                  Mais popular
+                </span>
+              )}
+              <div class="mb-5">
+                <h2 class="text-lg font-bold text-gray-900 mb-1">{plano.nome}</h2>
+                <p class="text-gray-500 text-sm mb-3">{plano.descricao}</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-3xl font-black text-primary-600">{plano.preco}</span>
+                  <span class="text-gray-400 text-sm">{plano.periodo}</span>
+                </div>
+              </div>
+
+              <ul class="space-y-2.5 mb-6 flex-1">
+                {plano.recursos.map(r => (
+                  <li class="flex items-center gap-2.5 text-sm">
+                    {r.incluso
+                      ? <svg class="text-green-500 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      : <svg class="text-gray-300 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    }
+                    <span class={r.incluso ? 'text-gray-700' : 'text-gray-400'}>{r.texto}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a href={plano.href} class={plano.destaque ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'}>
+                {plano.cta}
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section bg-white">
+      <div class="container max-w-2xl">
+        <h2 class="text-center mb-10">Perguntas frequentes</h2>
+        <div class="space-y-4">
+          {faqs.map((faq, i) => (
+            <details class="card cursor-pointer group">
+              <summary class="font-semibold text-gray-900 list-none flex items-center justify-between gap-4">
+                {faq.p}
+                <svg class="shrink-0 text-gray-400 group-open:rotate-180 transition-transform" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <p class="text-gray-600 text-sm leading-relaxed mt-3 pt-3 border-t border-gray-100">{faq.r}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

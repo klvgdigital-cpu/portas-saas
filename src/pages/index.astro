@@ -1,0 +1,186 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProfissionalCard from '../components/ProfissionalCard.astro';
+import { getProfissionais } from '../lib/supabase';
+
+let destaques = [];
+try {
+  destaques = await getProfissionais();
+  destaques = destaques.filter(p => p.plano === 'pro').slice(0, 6);
+} catch (e) {
+  destaques = [];
+}
+
+const stats = [
+  { valor: '1.200+', label: 'Profissionais cadastrados' },
+  { valor: '480+', label: 'Cidades atendidas' },
+  { valor: '15.000+', label: 'Clientes atendidos' },
+  { valor: '4.8★', label: 'Avaliação média' },
+];
+
+const steps = [
+  {
+    num: '01',
+    title: 'Busque por cidade',
+    desc: 'Encontre profissionais verificados na sua região especializados em porta de enrolar.',
+    icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  },
+  {
+    num: '02',
+    title: 'Solicite um orçamento',
+    desc: 'Descreva o problema ou serviço e receba propostas de profissionais disponíveis.',
+    icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+  },
+  {
+    num: '03',
+    title: 'Confirme o serviço',
+    desc: 'Agende diretamente com o profissional escolhido e avalie após a conclusão.',
+    icon: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+  },
+];
+
+const depoimentos = [
+  { nome: 'Carlos Mendonça', cidade: 'São Paulo, SP', nota: 5, texto: 'Encontrei um técnico em menos de 1 hora. Serviço rápido e preço justo. Minha porta voltou a funcionar no mesmo dia.' },
+  { nome: 'Fernanda Azevedo', cidade: 'Belo Horizonte, MG', nota: 5, texto: 'Minha porta parou num domingo. Consegui atendimento de emergência pelo PortaFácil. Profissional super atencioso.' },
+  { nome: 'Roberto Teixeira', cidade: 'Curitiba, PR', nota: 5, texto: 'Profissional pontual, explicou tudo antes de fazer. Orçamento honesto, sem surpresas. Recomendo demais.' },
+];
+---
+<BaseLayout>
+  <Header />
+
+  <!-- Hero -->
+  <section class="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-16 md:py-24">
+    <div class="container text-center max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+      <span class="inline-block bg-accent-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5 uppercase tracking-wide">
+        #1 em porta de enrolar no Brasil
+      </span>
+      <h1 class="text-white mb-5">
+        Encontre um especialista em porta de enrolar perto de você
+      </h1>
+      <p class="text-primary-100 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+        Profissionais verificados em todo o Brasil para instalação, manutenção e reparo de portas automáticas e manuais.
+      </p>
+
+      <!-- Search -->
+      <form action="/profissionais" method="get" class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+        <input
+          type="text"
+          name="cidade"
+          placeholder="Digite sua cidade..."
+          class="flex-1 input-field bg-white text-gray-900 text-base"
+          aria-label="Buscar por cidade"
+        />
+        <button type="submit" class="btn-primary whitespace-nowrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Buscar
+        </button>
+      </form>
+      <p class="text-primary-200 text-sm mt-3">Mais de 1.200 profissionais em 480 cidades</p>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="bg-white border-b border-gray-100">
+    <div class="container py-8 md:py-10">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        {stats.map(s => (
+          <div>
+            <p class="text-2xl md:text-3xl font-bold text-primary-600">{s.valor}</p>
+            <p class="text-sm text-gray-500 mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Como Funciona -->
+  <section class="section bg-gray-50" id="como-funciona">
+    <div class="container">
+      <div class="text-center mb-12">
+        <span class="inline-block text-xs font-semibold text-accent-500 uppercase tracking-wider mb-2">Simples e rápido</span>
+        <h2 class="text-gray-900">Como funciona</h2>
+        <p class="text-gray-500 mt-3 max-w-xl mx-auto">Do problema ao serviço resolvido em 3 passos simples</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {steps.map(step => (
+          <div class="relative text-center">
+            <div class="w-16 h-16 rounded-2xl bg-primary-600 text-white flex items-center justify-center mx-auto mb-5">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d={step.icon}/>
+              </svg>
+            </div>
+            <span class="text-4xl font-black text-gray-100 absolute top-0 right-1/4 -translate-y-2 select-none">{step.num}</span>
+            <h3 class="font-semibold text-gray-900 mb-2">{step.title}</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Profissionais em Destaque -->
+  {destaques.length > 0 && (
+    <section class="section bg-white">
+      <div class="container">
+        <div class="flex items-end justify-between mb-8 flex-wrap gap-4">
+          <div>
+            <span class="inline-block text-xs font-semibold text-accent-500 uppercase tracking-wider mb-1">Profissionais verificados</span>
+            <h2>Especialistas em destaque</h2>
+          </div>
+          <a href="/profissionais" class="btn-outline">Ver todos</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {destaques.map(p => <ProfissionalCard profissional={p} />)}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA Serralheiros -->
+  <section class="section bg-accent-500">
+    <div class="container text-center max-w-3xl mx-auto">
+      <h2 class="text-white mb-4">Você é serralheiro ou técnico em porta de enrolar?</h2>
+      <p class="text-orange-100 text-lg mb-8 leading-relaxed">
+        Cadastre-se na plataforma e receba clientes da sua cidade todos os meses. Sem comissão por serviço — pague apenas uma mensalidade fixa.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/cadastro-profissional" class="inline-flex items-center justify-center gap-2 bg-white text-accent-600 font-bold px-8 py-3.5 rounded-lg hover:bg-orange-50 transition-colors min-h-[44px] text-base">
+          Quero receber clientes
+        </a>
+        <a href="/planos" class="inline-flex items-center justify-center gap-2 border-2 border-white text-white font-semibold px-8 py-3.5 rounded-lg hover:bg-accent-600 transition-colors min-h-[44px] text-base">
+          Ver planos e preços
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Depoimentos -->
+  <section class="section bg-white">
+    <div class="container">
+      <div class="text-center mb-10">
+        <span class="inline-block text-xs font-semibold text-accent-500 uppercase tracking-wider mb-2">Quem usa aprova</span>
+        <h2>O que nossos clientes dizem</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {depoimentos.map(d => (
+          <div class="card">
+            <div class="stars mb-3">
+              {Array.from({length: d.nota}).map(() => (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              ))}
+            </div>
+            <p class="text-gray-700 text-sm leading-relaxed mb-4">"{d.texto}"</p>
+            <div>
+              <p class="font-semibold text-sm text-gray-900">{d.nome}</p>
+              <p class="text-xs text-gray-400">{d.cidade}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>

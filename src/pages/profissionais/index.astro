@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ProfissionalCard from '../../components/ProfissionalCard.astro';
+import { getProfissionais } from '../../lib/supabase';
+
+const { cidade, estado, tipos_porta } = Astro.url.searchParams
+  ? Object.fromEntries(Astro.url.searchParams)
+  : {};
+
+let profissionais = [];
+try {
+  profissionais = await getProfissionais({ cidade, estado, tipos_porta });
+} catch {
+  profissionais = [];
+}
+
+const estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+---
+<BaseLayout
+  title="Encontre Especialistas em Porta de Enrolar — PortaFácil"
+  description="Busque profissionais verificados para instalação e manutenção de porta de enrolar automática e manual em todo o Brasil."
+  breadcrumbs={[{label:'Home',href:'/'},{label:'Profissionais',href:'/profissionais'}]}
+>
+  <Header />
+
+  <main>
+    <!-- Filtros -->
+    <section class="bg-gray-50 border-b border-gray-200 py-6">
+      <div class="container">
+        <h1 class="text-2xl font-bold text-gray-900 mb-5">
+          {cidade ? `Especialistas em ${cidade}` : 'Todos os especialistas'}
+        </h1>
+        <form method="get" class="flex flex-wrap gap-3">
+          <input
+            type="text"
+            name="cidade"
+            placeholder="Cidade"
+            value={cidade ?? ''}
+            class="input-field w-full sm:w-48"
+            aria-label="Filtrar por cidade"
+          />
+          <select name="estado" class="input-field w-full sm:w-40" aria-label="Filtrar por estado">
+            <option value="">Todos os estados</option>
+            {estados.map(uf => (
+              <option value={uf} selected={estado === uf}>{uf}</option>
+            ))}
+          </select>
+          <select name="tipos_porta" class="input-field w-full sm:w-48" aria-label="Filtrar por tipo de porta">
+            <option value="todos">Todos os tipos</option>
+            <option value="automatica" selected={tipos_porta === 'automatica'}>Automática</option>
+            <option value="manual" selected={tipos_porta === 'manual'}>Manual</option>
+          </select>
+          <button type="submit" class="btn-primary">Filtrar</button>
+          {(cidade || estado || tipos_porta) && (
+            <a href="/profissionais" class="btn-outline">Limpar</a>
+          )}
+        </form>
+      </div>
+    </section>
+
+    <!-- Resultados -->
+    <section class="section">
+      <div class="container">
+        {profissionais.length === 0 ? (
+          <div class="text-center py-20">
+            <svg class="mx-auto mb-4 text-gray-300" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Nenhum profissional encontrado</h2>
+            <p class="text-gray-500 mb-6">Tente buscar em outra cidade ou remova os filtros.</p>
+            <a href="/profissionais" class="btn-primary">Ver todos os profissionais</a>
+          </div>
+        ) : (
+          <>
+            <p class="text-sm text-gray-500 mb-6">
+              {profissionais.length} profissional{profissionais.length !== 1 ? 'is' : ''} encontrado{profissionais.length !== 1 ? 's' : ''}
+              {cidade && ` em ${cidade}`}
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {profissionais.map(p => <ProfissionalCard profissional={p} />)}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>

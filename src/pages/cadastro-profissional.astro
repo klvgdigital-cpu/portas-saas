@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const plano = Astro.url.searchParams.get('plano') ?? 'basico';
+
+const estados = [
+  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
+  'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
+];
+---
+<BaseLayout
+  title="Cadastre-se como Profissional — PortaFácil"
+  description="Crie sua conta na PortaFácil e comece a receber clientes que precisam de porta de enrolar na sua cidade."
+  breadcrumbs={[{label:'Home',href:'/'},{label:'Cadastro',href:'/cadastro-profissional'}]}
+>
+  <Header />
+  <main class="section bg-gray-50 min-h-screen">
+    <div class="container max-w-2xl">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastre-se como profissional</h1>
+        <p class="text-gray-500">Preencha seus dados e comece a receber clientes hoje</p>
+      </div>
+
+      <div class="card">
+        <form id="form-cadastro" class="space-y-5" novalidate>
+          <input type="hidden" name="plano" value={plano} />
+
+          <fieldset class="space-y-4">
+            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Dados pessoais</legend>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="nome">Nome completo *</label>
+                <input id="nome" type="text" name="nome" required class="input-field" placeholder="João da Silva" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="cpf_cnpj">CPF ou CNPJ *</label>
+                <input id="cpf_cnpj" type="text" name="cpf_cnpj" required class="input-field" placeholder="000.000.000-00" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="email">E-mail *</label>
+                <input id="email" type="email" name="email" required class="input-field" placeholder="voce@email.com" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="whatsapp">WhatsApp *</label>
+                <input id="whatsapp" type="tel" name="whatsapp" required class="input-field" placeholder="(11) 99999-0000" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="senha">Senha *</label>
+              <input id="senha" type="password" name="senha" required class="input-field" placeholder="Mínimo 8 caracteres" minlength="8" />
+            </div>
+          </fieldset>
+
+          <fieldset class="space-y-4">
+            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Sobre seus serviços</legend>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="descricao">Descrição dos serviços *</label>
+              <textarea id="descricao" name="descricao" rows="4" required class="input-field resize-none" placeholder="Descreva sua experiência, tipos de serviço que realiza, marcas que atende..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="tipos_porta">Tipo de porta *</label>
+                <select id="tipos_porta" name="tipos_porta" class="input-field">
+                  <option value="ambas">Automática e Manual</option>
+                  <option value="automatica">Somente Automática</option>
+                  <option value="manual">Somente Manual</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="anos_experiencia">Anos de experiência *</label>
+                <select id="anos_experiencia" name="anos_experiencia" class="input-field">
+                  {[1,2,3,5,10,15,20].map(n => (
+                    <option value={n}>{n}+ anos</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="space-y-4">
+            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Localização</legend>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="cidade">Cidade principal *</label>
+                <input id="cidade" type="text" name="cidade" required class="input-field" placeholder="São Paulo" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="estado">Estado *</label>
+                <select id="estado" name="estado" class="input-field">
+                  {estados.map(uf => <option value={uf}>{uf}</option>)}
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Plano selecionado -->
+          <div class={`p-4 rounded-lg border-2 ${plano === 'pro' ? 'border-accent-400 bg-orange-50' : 'border-primary-300 bg-primary-50'}`}>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-semibold text-gray-900">
+                  {plano === 'pro' ? 'Plano Pro — R$ 149/mês' : 'Plano Básico — R$ 79/mês'}
+                </p>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  {plano === 'pro' ? 'Leads ilimitados + destaque + verificado' : 'Até 10 leads/mês'}
+                </p>
+              </div>
+              <a href="/planos" class="text-xs text-primary-600 hover:underline">Trocar</a>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <input type="checkbox" id="termos" name="termos" required class="mt-1 w-4 h-4 accent-primary-600" />
+            <label for="termos" class="text-sm text-gray-600">
+              Li e aceito os <a href="/termos" class="text-primary-600 hover:underline">Termos de Uso</a> e a
+              <a href="/privacidade" class="text-primary-600 hover:underline">Política de Privacidade</a>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-primary w-full text-base">
+            Criar conta e prosseguir para pagamento
+          </button>
+
+          <p class="text-xs text-gray-400 text-center">
+            Após o cadastro, você será redirecionado para o pagamento seguro via Stripe.
+          </p>
+        </form>
+      </div>
+
+      <p class="text-center text-sm text-gray-500 mt-4">
+        Já tem conta? <a href="/login" class="text-primary-600 hover:underline font-medium">Entrar</a>
+      </p>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

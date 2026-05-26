@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const { data: profissionais } = await supabase
+  .from('profissionais')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+const { data: leads } = await supabase.from('leads').select('id');
+const { data: clientes } = await supabase.from('clientes').select('id');
+
+const total_pro = profissionais?.filter(p => p.plano === 'pro').length ?? 0;
+const total_basico = profissionais?.filter(p => p.plano === 'basico').length ?? 0;
+const receita_estimada = (total_pro * 149) + (total_basico * 79);
+---
+<BaseLayout title="Painel Admin — PortaFácil">
+  <Header />
+  <main class="section bg-gray-50 min-h-screen">
+    <div class="container">
+      <h1 class="text-2xl font-bold text-gray-900 mb-8">Painel Administrativo</h1>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Profissionais ativos', valor: profissionais?.filter(p => p.status === 'ativo').length ?? 0 },
+          { label: 'Clientes cadastrados', valor: clientes?.length ?? 0 },
+          { label: 'Total de leads', valor: leads?.length ?? 0 },
+          { label: 'Receita estimada/mês', valor: `R$ ${receita_estimada.toLocaleString('pt-BR')}` },
+        ].map(s => (
+          <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <p class="text-xs text-gray-500 mb-1">{s.label}</p>
+            <p class="text-2xl font-bold text-primary-600">{s.valor}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- Tabela de profissionais -->
+      <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-900">Profissionais cadastrados</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+              <tr>
+                <th class="text-left px-5 py-3">Nome</th>
+                <th class="text-left px-5 py-3">Cidade</th>
+                <th class="text-left px-5 py-3">Plano</th>
+                <th class="text-left px-5 py-3">Status</th>
+                <th class="text-left px-5 py-3">Cadastro</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {profissionais?.map(p => (
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3">
+                    <p class="font-medium text-gray-900">{p.nome}</p>
+                    <p class="text-gray-400 text-xs">{p.email}</p>
+                  </td>
+                  <td class="px-5 py-3 text-gray-600">{p.cidade}, {p.estado}</td>
+                  <td class="px-5 py-3">
+                    <span class={`text-xs font-medium px-2.5 py-1 rounded-full ${p.plano === 'pro' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {p.plano === 'pro' ? 'Pro' : 'Básico'}
+                    </span>
+                  </td>
+                  <td class="px-5 py-3">
+                    <span class={`text-xs font-medium px-2.5 py-1 rounded-full ${p.status === 'ativo' ? 'bg-green-100 text-green-800' : p.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                      {p.status}
+                    </span>
+                  </td>
+                  <td class="px-5 py-3 text-gray-400">{new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
