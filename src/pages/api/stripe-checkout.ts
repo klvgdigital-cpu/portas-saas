@@ -55,8 +55,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     const stripe = new Stripe(stripeKey);
     const priceId = plano === 'pro'
-      ? import.meta.env.STRIPE_PRICE_PRO
-      : import.meta.env.STRIPE_PRICE_BASICO;
+      ? (import.meta.env.STRIPE_PRICE_PRO || 'price_1TbWBp10Lgf22AVyeiuNmkU6')
+      : (import.meta.env.STRIPE_PRICE_BASICO || 'price_1TbWBA10Lgf22AVyNNU3mgK9');
 
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://www.portafacil.net';
 
