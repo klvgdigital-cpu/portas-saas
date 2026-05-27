@@ -103,20 +103,27 @@ const estados = [
             </div>
           </fieldset>
 
-          <!-- Plano selecionado -->
-          <div class={`p-4 rounded-lg border-2 ${plano === 'pro' ? 'border-accent-400 bg-orange-50' : 'border-primary-300 bg-primary-50'}`}>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-semibold text-gray-900">
-                  {plano === 'pro' ? 'Plano Pro — R$ 149/mês' : 'Plano Básico — R$ 79/mês'}
-                </p>
-                <p class="text-xs text-gray-500 mt-0.5">
-                  {plano === 'pro' ? 'Leads ilimitados + destaque + verificado' : 'Até 10 leads/mês'}
-                </p>
+          <!-- Seletor de plano inline -->
+          <fieldset class="space-y-3">
+            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Escolha seu plano</legend>
+            <label class="flex items-start gap-3 p-4 rounded-lg border-2 border-primary-300 bg-primary-50 cursor-pointer" id="label-basico">
+              <input type="radio" name="plano" value="basico" class="mt-1 accent-primary-600" id="plano-basico" />
+              <div class="flex-1">
+                <p class="font-semibold text-gray-900">Plano Básico — <span class="text-primary-600">R$ 79/mês</span></p>
+                <p class="text-xs text-gray-500 mt-0.5">Até 10 leads/mês · Perfil ativo na plataforma</p>
               </div>
-              <a href="/planos" class="text-xs text-primary-600 hover:underline">Trocar</a>
-            </div>
-          </div>
+            </label>
+            <label class="flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer" id="label-pro">
+              <input type="radio" name="plano" value="pro" class="mt-1 accent-accent-500" id="plano-pro" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <p class="font-semibold text-gray-900">Plano Pro — <span class="text-accent-500">R$ 149/mês</span></p>
+                  <span class="text-xs font-medium bg-accent-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-0.5">Leads ilimitados · Destaque · Selo Verificado · Agendamento online</p>
+              </div>
+            </label>
+          </fieldset>
 
           <div class="flex items-start gap-3">
             <input type="checkbox" id="termos" name="termos" required class="mt-1 w-4 h-4 accent-primary-600" />
@@ -145,6 +152,30 @@ const estados = [
 </BaseLayout>
 
 <script>
+  // Pré-selecionar plano baseado na URL
+  const params = new URLSearchParams(window.location.search);
+  const planoInicial = params.get('plano') || 'basico';
+  const radioInicial = document.querySelector(`input[name="plano"][value="${planoInicial}"]`);
+  if (radioInicial) radioInicial.checked = true;
+  atualizarPlano(planoInicial);
+
+  // Destacar plano selecionado
+  document.querySelectorAll('input[name="plano"]').forEach(radio => {
+    radio.addEventListener('change', (e) => atualizarPlano(e.target.value));
+  });
+
+  function atualizarPlano(plano) {
+    const labelBasico = document.getElementById('label-basico');
+    const labelPro = document.getElementById('label-pro');
+    if (plano === 'pro') {
+      labelPro.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-accent-400 bg-orange-50 cursor-pointer';
+      labelBasico.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer';
+    } else {
+      labelBasico.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-primary-300 bg-primary-50 cursor-pointer';
+      labelPro.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer';
+    }
+  }
+
   const form = document.getElementById('form-cadastro');
   const btn = form?.querySelector('button[type="submit"]');
 
