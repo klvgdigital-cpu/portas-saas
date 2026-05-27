@@ -198,38 +198,22 @@ const estados = [
     btn.textContent = 'Aguarde...';
 
     try {
-      // Salvar profissional no Supabase
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        form.dataset.sbUrl || '',
-        form.dataset.sbKey || ''
-      );
-
-      const slug = nome.toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') + '-' + Date.now();
-
-      await supabase.from('profissionais').insert({
-        slug,
-        nome,
-        email,
-        whatsapp: data.get('whatsapp'),
-        cpf_cnpj: data.get('cpf_cnpj'),
-        descricao: data.get('descricao'),
-        cidade: data.get('cidade'),
-        estado: data.get('estado'),
-        tipos_porta: data.get('tipos_porta'),
-        anos_experiencia: Number(data.get('anos_experiencia')),
-        plano: 'basico',
-        status: 'pendente',
-      });
-
-      // Redirecionar para Stripe Checkout
+      // Enviar dados para API que salva no Supabase e cria sessão Stripe
       const res = await fetch('/api/stripe-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plano, email, nome }),
+        body: JSON.stringify({
+          plano,
+          email,
+          nome,
+          whatsapp: data.get('whatsapp'),
+          cpf_cnpj: data.get('cpf_cnpj'),
+          descricao: data.get('descricao'),
+          cidade: data.get('cidade'),
+          estado: data.get('estado'),
+          tipos_porta: data.get('tipos_porta'),
+          anos_experiencia: data.get('anos_experiencia'),
+        }),
       });
 
       const json = await res.json();
