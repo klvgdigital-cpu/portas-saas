@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const lastUpdate = '26 de maio de 2026';
+---
+<BaseLayout
+  title="Política de Privacidade — PortaFácil"
+  description="Política de Privacidade da PortaFácil. Saiba como coletamos, usamos e protegemos seus dados pessoais conforme a LGPD."
+  breadcrumbs={[{label:'Home',href:'/'},{label:'Privacidade',href:'/privacidade'}]}
+>
+  <Header />
+  <main class="section bg-white">
+    <div class="container max-w-3xl">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Política de Privacidade</h1>
+      <p class="text-sm text-gray-400 mb-10">Última atualização: {lastUpdate}</p>
+
+      <div class="prose prose-gray max-w-none space-y-8 text-gray-700 leading-relaxed">
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">1. Quem somos</h2>
+          <p>A PortaFácil é uma plataforma digital de marketplace para serviços de instalação e manutenção de portas de aço de enrolar, acessível em www.portafacil.net. Esta Política descreve como tratamos seus dados pessoais em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">2. Dados que coletamos</h2>
+          <p class="mb-3">Coletamos os seguintes dados conforme o tipo de usuário:</p>
+          <p class="font-medium mb-1">Clientes:</p>
+          <ul class="list-disc pl-6 space-y-1 mb-3">
+            <li>Nome completo</li>
+            <li>Endereço de e-mail</li>
+            <li>Telefone / WhatsApp</li>
+            <li>CEP e cidade</li>
+            <li>Descrição do serviço solicitado</li>
+          </ul>
+          <p class="font-medium mb-1">Profissionais:</p>
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Nome completo</li>
+            <li>CPF ou CNPJ</li>
+            <li>Endereço de e-mail</li>
+            <li>Telefone / WhatsApp</li>
+            <li>Cidade e estado de atuação</li>
+            <li>Foto de perfil e portfólio</li>
+            <li>Dados de pagamento (processados pelo Stripe — não armazenamos dados de cartão)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">3. Como usamos seus dados</h2>
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Conectar clientes a profissionais adequados</li>
+            <li>Enviar notificações sobre leads e orçamentos</li>
+            <li>Processar pagamentos de assinaturas</li>
+            <li>Melhorar a experiência na Plataforma</li>
+            <li>Cumprir obrigações legais e regulatórias</li>
+            <li>Enviar comunicações relacionadas ao serviço (não enviamos spam)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">4. Base legal para tratamento</h2>
+          <p>Tratamos seus dados com base nas seguintes hipóteses legais previstas na LGPD: execução de contrato (art. 7º, V), legítimo interesse (art. 7º, IX), cumprimento de obrigação legal (art. 7º, II) e consentimento quando aplicável (art. 7º, I).</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">5. Compartilhamento de dados</h2>
+          <p class="mb-2">Seus dados podem ser compartilhados com:</p>
+          <ul class="list-disc pl-6 space-y-1">
+            <li><strong>Stripe</strong> — processamento de pagamentos</li>
+            <li><strong>Supabase</strong> — armazenamento seguro dos dados</li>
+            <li><strong>Resend</strong> — envio de e-mails transacionais</li>
+            <li><strong>Autoridades públicas</strong> — quando exigido por lei</li>
+          </ul>
+          <p class="mt-2">Não vendemos nem comercializamos seus dados com terceiros.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">6. Seus direitos (LGPD)</h2>
+          <p class="mb-2">Como titular de dados, você tem direito a:</p>
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Confirmar a existência de tratamento dos seus dados</li>
+            <li>Acessar seus dados</li>
+            <li>Corrigir dados incompletos ou desatualizados</li>
+            <li>Solicitar anonimização, bloqueio ou eliminação</li>
+            <li>Portabilidade dos dados</li>
+            <li>Revogar consentimento a qualquer momento</li>
+            <li>Solicitar a exclusão da conta e dos dados associados</li>
+          </ul>
+          <p class="mt-2">Para exercer seus direitos, envie e-mail para <a href="mailto:privacidade@portafacil.net" class="text-primary-600 hover:underline">privacidade@portafacil.net</a>.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">7. Retenção de dados</h2>
+          <p>Mantemos seus dados enquanto sua conta estiver ativa ou conforme necessário para cumprir obrigações legais. Após o encerramento da conta, os dados são excluídos em até 90 dias, exceto quando houver obrigação legal de retenção.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">8. Segurança</h2>
+          <p>Adotamos medidas técnicas e organizacionais para proteger seus dados, incluindo criptografia em trânsito (HTTPS), controle de acesso por nível (Row Level Security), autenticação segura e backups regulares.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">9. Cookies</h2>
+          <p>Utilizamos cookies estritamente necessários para o funcionamento da Plataforma. Não utilizamos cookies de rastreamento ou publicidade de terceiros sem seu consentimento.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">10. Alterações nesta Política</h2>
+          <p>Esta Política pode ser atualizada periodicamente. Notificaremos usuários cadastrados sobre mudanças relevantes por e-mail. A data da última atualização está sempre indicada no topo desta página.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">11. Encarregado de Dados (DPO)</h2>
+          <p>Nosso encarregado pelo tratamento de dados pessoais pode ser contatado em <a href="mailto:privacidade@portafacil.net" class="text-primary-600 hover:underline">privacidade@portafacil.net</a>.</p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

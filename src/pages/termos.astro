@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const lastUpdate = '26 de maio de 2026';
+---
+<BaseLayout
+  title="Termos de Uso — PortaFácil"
+  description="Termos de Uso da plataforma PortaFácil. Leia as condições para uso do marketplace de especialistas em porta de enrolar."
+  breadcrumbs={[{label:'Home',href:'/'},{label:'Termos de Uso',href:'/termos'}]}
+>
+  <Header />
+  <main class="section bg-white">
+    <div class="container max-w-3xl">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Termos de Uso</h1>
+      <p class="text-sm text-gray-400 mb-10">Última atualização: {lastUpdate}</p>
+
+      <div class="prose prose-gray max-w-none space-y-8 text-gray-700 leading-relaxed">
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">1. Aceitação dos Termos</h2>
+          <p>Ao acessar ou utilizar a plataforma PortaFácil ("Plataforma"), disponível em www.portafacil.net, você ("Usuário") concorda com estes Termos de Uso. Caso não concorde, não utilize a Plataforma.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">2. Descrição do Serviço</h2>
+          <p>A PortaFácil é um marketplace digital que conecta clientes finais a profissionais especializados em instalação, manutenção e reparo de portas de aço de enrolar automáticas e manuais. A Plataforma não presta serviços técnicos diretamente, atuando exclusivamente como intermediária.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">3. Cadastro e Contas</h2>
+          <p class="mb-2">Para utilizar determinadas funcionalidades, o Usuário deve criar uma conta fornecendo informações verdadeiras, precisas e atualizadas. O Usuário é responsável pela confidencialidade de sua senha e por todas as atividades realizadas em sua conta.</p>
+          <p>A PortaFácil reserva-se o direito de suspender ou encerrar contas que violem estes Termos ou que forneçam informações falsas.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">4. Planos e Pagamentos (Prestadores de Serviço)</h2>
+          <p class="mb-2">Profissionais cadastrados como prestadores de serviço podem escolher entre os planos disponíveis (Básico ou Pro), com cobrança mensal recorrente processada via Stripe.</p>
+          <ul class="list-disc pl-6 space-y-1 mt-2">
+            <li>Os valores dos planos são exibidos na página de planos e podem ser alterados mediante aviso prévio de 30 dias.</li>
+            <li>O cancelamento pode ser realizado a qualquer momento pelo painel do profissional, sem multa.</li>
+            <li>Não há reembolso de períodos já pagos, salvo em caso de falha comprovada da Plataforma.</li>
+            <li>A inadimplência resultará na suspensão automática do perfil.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">5. Responsabilidades do Profissional</h2>
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Fornecer informações verídicas sobre sua experiência, qualificações e serviços.</li>
+            <li>Responder aos leads recebidos com agilidade e profissionalismo.</li>
+            <li>Cumprir as obrigações legais e fiscais aplicáveis à sua atividade.</li>
+            <li>Não utilizar a Plataforma para desviar clientes para canais externos de forma a prejudicar outros usuários.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">6. Responsabilidades do Cliente</h2>
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Fornecer informações corretas ao solicitar orçamentos ou agendar serviços.</li>
+            <li>Tratar os profissionais com respeito.</li>
+            <li>Realizar avaliações honestas e baseadas em fatos reais.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">7. Limitação de Responsabilidade</h2>
+          <p>A PortaFácil não se responsabiliza pela qualidade dos serviços prestados pelos profissionais cadastrados, por danos causados durante a execução dos serviços, por acordos celebrados diretamente entre clientes e profissionais, ou por informações falsas fornecidas por qualquer usuário.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">8. Propriedade Intelectual</h2>
+          <p>Todo o conteúdo da Plataforma, incluindo marca, logotipo, textos, imagens e código, é de propriedade exclusiva da PortaFácil e protegido pelas leis de propriedade intelectual. É vedada a reprodução sem autorização expressa.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">9. Modificações</h2>
+          <p>A PortaFácil pode modificar estes Termos a qualquer momento. Alterações relevantes serão comunicadas por e-mail ou aviso na Plataforma. O uso continuado após as modificações implica aceitação dos novos termos.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">10. Lei Aplicável e Foro</h2>
+          <p>Estes Termos são regidos pela legislação brasileira. Fica eleito o foro da comarca de São Paulo/SP para dirimir quaisquer controvérsias.</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">11. Contato</h2>
+          <p>Dúvidas sobre estes Termos podem ser enviadas para <a href="mailto:contato@portafacil.net" class="text-primary-600 hover:underline">contato@portafacil.net</a>.</p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

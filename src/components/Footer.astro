@@ -27,7 +27,7 @@ const year = new Date().getFullYear();
         <h3 class="font-semibold text-sm uppercase tracking-wider text-primary-200 mb-4">Navegação</h3>
         <ul class="space-y-2.5">
           {['Home', 'Buscar Profissional', 'Como Funciona', 'Para Profissionais', 'Blog', 'Contato'].map(item => (
-            <li><a href="#" class="text-primary-100 hover:text-white text-sm transition-colors">{item}</a></li>
+            <li><a href={item.href} class="text-primary-100 hover:text-white text-sm transition-colors">{item.label}</a></li>
           ))}
         </ul>
       </div>
@@ -37,7 +37,7 @@ const year = new Date().getFullYear();
         <h3 class="font-semibold text-sm uppercase tracking-wider text-primary-200 mb-4">Para Profissionais</h3>
         <ul class="space-y-2.5">
           {['Como Funciona', 'Plano Básico', 'Plano Pro', 'Área do Prestador', 'Suporte', 'FAQ'].map(item => (
-            <li><a href="#" class="text-primary-100 hover:text-white text-sm transition-colors">{item}</a></li>
+            <li><a href={item.href} class="text-primary-100 hover:text-white text-sm transition-colors">{item.label}</a></li>
           ))}
         </ul>
       </div>
@@ -46,8 +46,8 @@ const year = new Date().getFullYear();
       <div>
         <h3 class="font-semibold text-sm uppercase tracking-wider text-primary-200 mb-4">Legal</h3>
         <ul class="space-y-2.5">
-          {['Política de Privacidade', 'Termos de Uso', 'Política de Cookies', 'LGPD', 'Cancelamento', 'Acessibilidade'].map(item => (
-            <li><a href="#" class="text-primary-100 hover:text-white text-sm transition-colors">{item}</a></li>
+          {[{label:'Política de Privacidade',href:'/privacidade'},{label:'Termos de Uso',href:'/termos'},{label:'Política de Cookies',href:'/privacidade'},{label:'LGPD',href:'/privacidade'},{label:'Cancelamento',href:'/termos'},{label:'Acessibilidade',href:'#'}].map(item => (
+            <li><a href={item.href} class="text-primary-100 hover:text-white text-sm transition-colors">{item.label}</a></li>
           ))}
         </ul>
       </div>
