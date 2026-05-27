@@ -143,3 +143,72 @@ const estados = [
   </main>
   <Footer />
 </BaseLayout>
+
+<script>
+  const form = document.getElementById('form-cadastro');
+  const btn = form?.querySelector('button[type="submit"]');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const data = new FormData(form);
+    const plano = data.get('plano');
+    const nome = data.get('nome');
+    const email = data.get('email');
+
+    btn.disabled = true;
+    btn.textContent = 'Aguarde...';
+
+    try {
+      // Salvar profissional no Supabase
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      const supabase = createClient(
+        document.querySelector('meta[name="sb-url"]')?.content || '',
+        document.querySelector('meta[name="sb-key"]')?.content || ''
+      );
+
+      const slug = nome.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') + '-' + Date.now();
+
+      await supabase.from('profissionais').insert({
+        slug,
+        nome,
+        email,
+        whatsapp: data.get('whatsapp'),
+        cpf_cnpj: data.get('cpf_cnpj'),
+        descricao: data.get('descricao'),
+        cidade: data.get('cidade'),
+        estado: data.get('estado'),
+        tipos_porta: data.get('tipos_porta'),
+        anos_experiencia: Number(data.get('anos_experiencia')),
+        plano: 'basico',
+        status: 'pendente',
+      });
+
+      // Redirecionar para Stripe Checkout
+      const res = await fetch('/api/stripe-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano, email, nome }),
+      });
+
+      const json = await res.json();
+
+      if (!json.url) throw new Error(json.error || 'Erro ao criar sessão de pagamento');
+
+      window.location.href = json.url;
+
+    } catch (err) {
+      alert('Erro: ' + (err.message || 'Tente novamente.'));
+      btn.disabled = false;
+      btn.textContent = 'Criar conta e prosseguir para pagamento';
+    }
+  });
+</script>
