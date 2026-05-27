@@ -226,4 +226,43 @@ const localBusinessJsonLd = {
   </main>
 
   <Footer />
+
+<script>
+  document.getElementById('form-orcamento')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const data = new FormData(form);
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profissional_id: data.get('profissional_id'),
+          nome: data.get('nome'),
+          telefone: data.get('telefone'),
+          tipo_servico: data.get('tipo_servico'),
+          descricao: data.get('descricao'),
+          cidade: '',
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        btn.textContent = '✓ Solicitação enviada!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('bg-green-600', 'text-white', 'w-full', 'py-3', 'rounded-lg', 'font-semibold');
+        form.reset();
+      } else {
+        throw new Error(json.error);
+      }
+    } catch (err: any) {
+      alert('Erro ao enviar: ' + (err.message || 'Tente novamente'));
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+</script>
 </BaseLayout>
