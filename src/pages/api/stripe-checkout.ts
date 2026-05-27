@@ -54,9 +54,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const stripe = new Stripe(stripeKey);
-    const priceId = plano === 'pro'
-      ? (import.meta.env.STRIPE_PRICE_PRO || 'price_1TbWBp10Lgf22AVyeiuNmkU6')
-      : (import.meta.env.STRIPE_PRICE_BASICO || 'price_1TbWBA10Lgf22AVyNNU3mgK9');
+    // Price IDs fixos — Stripe PortaFácil
+    const PRICE_PRO = 'price_1TbWBp10Lgf22AVyeiuNmkU6';
+    const PRICE_BASICO = 'price_1TbWBA10Lgf22AVyNNU3mgK9';
+    const priceId = plano === 'pro' ? PRICE_PRO : PRICE_BASICO;
 
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://www.portafacil.net';
 
