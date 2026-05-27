@@ -4,6 +4,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
 const plano = Astro.url.searchParams.get('plano') ?? 'basico';
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 const estados = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
@@ -24,7 +26,7 @@ const estados = [
       </div>
 
       <div class="card">
-        <form id="form-cadastro" class="space-y-5" novalidate>
+        <form id="form-cadastro" class="space-y-5" novalidate data-sb-url={supabaseUrl} data-sb-key={supabaseKey}>
           <input type="hidden" name="plano" value={plano} />
 
           <fieldset class="space-y-4">
@@ -199,8 +201,8 @@ const estados = [
       // Salvar profissional no Supabase
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
-        document.querySelector('meta[name="sb-url"]')?.content || '',
-        document.querySelector('meta[name="sb-key"]')?.content || ''
+        form.dataset.sbUrl || '',
+        form.dataset.sbKey || ''
       );
 
       const slug = nome.toLowerCase()
