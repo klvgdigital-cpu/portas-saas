@@ -46,6 +46,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Criar sessão Stripe
     const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
+    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+    const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log('ENV CHECK:', {
+      hasStripe: !!stripeKey && stripeKey !== 'placeholder',
+      hasSupabaseUrl: !!supabaseUrl && supabaseUrl !== 'placeholder',
+      hasSupabaseKey: !!supabaseKey && supabaseKey !== 'placeholder',
+      stripePeek: stripeKey?.substring(0, 12),
+    });
     if (!stripeKey) {
       return new Response(JSON.stringify({ error: 'Stripe não configurado' }), {
         status: 500,
