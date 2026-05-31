@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { plano, email, nome, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia } = body;
+    const { plano, email, nome, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia, senha } = body;
 
     if (!plano || !email) {
       return new Response(JSON.stringify({ error: 'Dados incompletos' }), {
@@ -14,12 +14,26 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Salvar profissional no Supabase (server-side — funciona sempre)
     const supabase = createClient(
       import.meta.env.PUBLIC_SUPABASE_URL,
       import.meta.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
+    // 1. Criar usuário no Supabase Auth
+    if (senha) {
+      const { error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password: senha,
+        email_confirm: true, // confirma automaticamente sem precisar de e-mail
+        user_metadata: { nome, plano }
+      });
+
+      if (authError && !authError.message.includes('already registered')) {
+        console.error('Auth error:', authError);
+      }
+    }
+
+    // 2. Salvar dados na tabela profissionais
     const slug = (nome || email).toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
@@ -44,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
       console.error('Supabase error:', dbError);
     }
 
-    // Criar sessão Stripe
+    // 3. Criar sessão Stripe
     const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
     if (!stripeKey) {
       return new Response(JSON.stringify({ error: 'Stripe não configurado' }), {
@@ -54,11 +68,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const stripe = new Stripe(stripeKey);
-    // Price IDs fixos — Stripe PortaFácil
     const PRICE_PRO = 'price_1TbWBp10Lgf22AVyeiuNmkU6';
     const PRICE_BASICO = 'price_1TbWBA10Lgf22AVyNNU3mgK9';
     const priceId = plano === 'pro' ? PRICE_PRO : PRICE_BASICO;
-
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://www.portafacil.net';
 
     const session = await stripe.checkout.sessions.create({

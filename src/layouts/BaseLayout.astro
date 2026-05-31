@@ -78,6 +78,9 @@ const breadcrumbJsonLd = breadcrumbs.length > 0 ? {
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
+  <meta name="sb-url" content={import.meta.env.PUBLIC_SUPABASE_URL} />
+  <meta name="sb-key" content={import.meta.env.PUBLIC_SUPABASE_ANON_KEY} />
+
   <!-- Google Search Console -->
   <meta name="google-site-verification" content="9xmzs_lr8dkYjpps4NRXJieLb7omj6qkCArQpnlLXcM" />
 
