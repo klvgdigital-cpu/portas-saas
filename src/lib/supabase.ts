@@ -100,3 +100,15 @@ export async function criarLead(lead: Omit<Lead, 'id' | 'status' | 'created_at'>
   if (error) throw error;
   return data;
 }
+
+export async function getDestaques(limit = 6) {
+  const { data, error } = await supabase
+    .from('profissionais')
+    .select('*')
+    .eq('status', 'ativo')
+    .eq('plano', 'pro')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as Profissional[];
+}
