@@ -32,13 +32,14 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // 2. Salvar dados na tabela profissionais (service role ignora RLS)
+    // 2. Salvar dados na tabela profissionais
+    // Garantir que todos os campos NOT NULL tenham valor
     const slug = (nome || email).toLowerCase()
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') + '-' + Date.now();
 
-    const { error: dbError, data: dbData } = await supabase.from('profissionais').upsert({
+    const { error: dbError } = await supabase.from('profissionais').upsert({
       slug,
       nome: nome || '',
       email,
@@ -55,9 +56,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (dbError) {
       console.error('Supabase upsert error:', JSON.stringify(dbError));
-      // Nao bloqueia o checkout — o webhook vai tentar atualizar apos pagamento
     } else {
-      console.log('Profissional salvo no banco:', email);
+      console.log('Profissional salvo:', email);
     }
 
     // 3. Criar sessao Stripe
