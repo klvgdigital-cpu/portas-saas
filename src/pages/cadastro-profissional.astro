@@ -3,10 +3,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
-const plano = Astro.url.searchParams.get('plano') ?? 'basico';
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-
 const estados = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
   'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
@@ -14,21 +10,38 @@ const estados = [
 ---
 <BaseLayout
   title="Cadastre-se como Profissional — PortaFácil"
-  description="Crie sua conta na PortaFácil e comece a receber clientes que precisam de porta de enrolar na sua cidade."
+  description="Crie sua conta na PortaFácil gratuitamente e comece a receber clientes que precisam de porta de enrolar na sua cidade."
   breadcrumbs={[{label:'Home',href:'/'},{label:'Cadastro',href:'/cadastro-profissional'}]}
 >
   <Header />
   <main class="section bg-gray-50 min-h-screen">
     <div class="container max-w-2xl">
+
+      <!-- Header da página -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Cadastre-se como profissional</h1>
-        <p class="text-gray-500">Preencha seus dados e comece a receber clientes hoje</p>
+        <span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">Cadastro gratuito</span>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Crie seu perfil profissional</h1>
+        <p class="text-gray-500">Preencha seus dados e apareça nas buscas de clientes hoje mesmo</p>
+      </div>
+
+      <!-- Benefícios rápidos -->
+      <div class="grid grid-cols-3 gap-3 mb-8">
+        {[
+          { icon: '⚡', text: 'Ativação imediata' },
+          { icon: '🔍', text: 'Apareça nas buscas' },
+          { icon: '💳', text: 'Sem cartão agora' },
+        ].map(b => (
+          <div class="bg-white rounded-xl border border-gray-100 p-3 text-center">
+            <span class="text-xl">{b.icon}</span>
+            <p class="text-xs font-medium text-gray-700 mt-1">{b.text}</p>
+          </div>
+        ))}
       </div>
 
       <div class="card">
-        <form id="form-cadastro" class="space-y-5" novalidate data-sb-url={supabaseUrl} data-sb-key={supabaseKey}>
-          <input type="hidden" name="plano" value={plano} />
+        <form id="form-cadastro" class="space-y-5" novalidate>
 
+          <!-- Dados pessoais -->
           <fieldset class="space-y-4">
             <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Dados pessoais</legend>
 
@@ -38,8 +51,8 @@ const estados = [
                 <input id="nome" type="text" name="nome" required class="input-field" placeholder="João da Silva" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="cpf_cnpj">CPF ou CNPJ *</label>
-                <input id="cpf_cnpj" type="text" name="cpf_cnpj" required class="input-field" placeholder="000.000.000-00" />
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="cpf_cnpj">CPF ou CNPJ</label>
+                <input id="cpf_cnpj" type="text" name="cpf_cnpj" class="input-field" placeholder="000.000.000-00" />
               </div>
             </div>
 
@@ -56,7 +69,7 @@ const estados = [
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" for="senha">Senha *</label>
-              <input id="senha" type="password" name="senha" required class="input-field" placeholder="Crie uma senha segura" minlength="8" />
+              <input id="senha" type="password" name="senha" required class="input-field" placeholder="Mínimo 8 caracteres" minlength="8" />
               <div id="senha-rules" class="mt-2 space-y-1 hidden">
                 <p id="rule-len" class="text-xs flex items-center gap-1.5 text-gray-400"><span id="icon-len">○</span> Mínimo 8 caracteres</p>
                 <p id="rule-upper" class="text-xs flex items-center gap-1.5 text-gray-400"><span id="icon-upper">○</span> Pelo menos 1 letra maiúscula</p>
@@ -65,12 +78,13 @@ const estados = [
             </div>
           </fieldset>
 
+          <!-- Serviços -->
           <fieldset class="space-y-4">
             <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Sobre seus serviços</legend>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" for="descricao">Descrição dos serviços *</label>
-              <textarea id="descricao" name="descricao" rows="4" required class="input-field resize-none" placeholder="Descreva sua experiência, tipos de serviço que realiza, marcas que atende..."></textarea>
+              <textarea id="descricao" name="descricao" rows="3" required class="input-field resize-none" placeholder="Descreva sua experiência, tipos de serviço, marcas que atende..."></textarea>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -93,6 +107,7 @@ const estados = [
             </div>
           </fieldset>
 
+          <!-- Localização -->
           <fieldset class="space-y-4">
             <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Localização</legend>
 
@@ -104,34 +119,13 @@ const estados = [
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="estado">Estado *</label>
                 <select id="estado" name="estado" class="input-field">
-                  {estados.map(uf => <option value={uf}>{uf}</option>)}
+                  {estados.map(uf => <option value={uf} selected={uf === 'SP'}>{uf}</option>)}
                 </select>
               </div>
             </div>
           </fieldset>
 
-          <!-- Seletor de plano inline -->
-          <fieldset class="space-y-3">
-            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Escolha seu plano</legend>
-            <label class="flex items-start gap-3 p-4 rounded-lg border-2 border-primary-300 bg-primary-50 cursor-pointer" id="label-basico">
-              <input type="radio" name="plano" value="basico" class="mt-1 accent-primary-600" id="plano-basico" />
-              <div class="flex-1">
-                <p class="font-semibold text-gray-900">Plano Básico — <span class="text-primary-600">R$ 79/mês</span></p>
-                <p class="text-xs text-gray-500 mt-0.5">Até 10 leads/mês · Perfil ativo na plataforma</p>
-              </div>
-            </label>
-            <label class="flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer" id="label-pro">
-              <input type="radio" name="plano" value="pro" class="mt-1 accent-accent-500" id="plano-pro" />
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <p class="font-semibold text-gray-900">Plano Pro — <span class="text-accent-500">R$ 149/mês</span></p>
-                  <span class="text-xs font-medium bg-accent-500 text-white px-2 py-0.5 rounded-full">Recomendado</span>
-                </div>
-                <p class="text-xs text-gray-500 mt-0.5">Leads ilimitados · Destaque · Selo Verificado · Agendamento online</p>
-              </div>
-            </label>
-          </fieldset>
-
+          <!-- Termos -->
           <div class="flex items-start gap-3">
             <input type="checkbox" id="termos" name="termos" required class="mt-1 w-4 h-4 accent-primary-600" />
             <label for="termos" class="text-sm text-gray-600">
@@ -140,12 +134,16 @@ const estados = [
             </label>
           </div>
 
-          <button type="submit" class="btn-primary w-full text-base">
-            Criar conta e prosseguir para pagamento
+          <!-- Erro -->
+          <div id="form-erro" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"></div>
+
+          <!-- Botão -->
+          <button type="submit" id="btn-submit" class="btn-primary w-full text-base">
+            Criar minha conta grátis →
           </button>
 
           <p class="text-xs text-gray-400 text-center">
-            Após o cadastro, você será redirecionado para o pagamento seguro via Stripe.
+            Sem cartão de crédito. Você poderá assinar um plano depois, direto no painel.
           </p>
         </form>
       </div>
@@ -159,7 +157,7 @@ const estados = [
 </BaseLayout>
 
 <script>
-  // Validação visual de senha
+  // Validação de senha
   const senhaInput = document.getElementById('senha');
   const senhaRules = document.getElementById('senha-rules');
 
@@ -167,79 +165,44 @@ const estados = [
     const el = document.getElementById(id);
     const icon = document.getElementById(iconId);
     if (valid) {
-      el.classList.remove('text-gray-400');
-      el.classList.add('text-green-600');
+      el.classList.replace('text-gray-400', 'text-green-600');
       icon.textContent = '✓';
     } else {
-      el.classList.remove('text-green-600');
-      el.classList.add('text-gray-400');
+      el.classList.replace('text-green-600', 'text-gray-400');
       icon.textContent = '○';
     }
   }
 
-  senhaInput?.addEventListener('focus', () => {
-    senhaRules?.classList.remove('hidden');
-  });
-
+  senhaInput?.addEventListener('focus', () => senhaRules?.classList.remove('hidden'));
   senhaInput?.addEventListener('input', (e) => {
-    const val = e.target.value;
-    updateRule('rule-len', 'icon-len', val.length >= 8);
-    updateRule('rule-upper', 'icon-upper', /[A-Z]/.test(val));
-    updateRule('rule-number', 'icon-number', /[0-9]/.test(val));
+    const v = e.target.value;
+    updateRule('rule-len', 'icon-len', v.length >= 8);
+    updateRule('rule-upper', 'icon-upper', /[A-Z]/.test(v));
+    updateRule('rule-number', 'icon-number', /[0-9]/.test(v));
   });
 
-  // Pré-selecionar plano baseado na URL
-  const params = new URLSearchParams(window.location.search);
-  const planoInicial = params.get('plano') || 'basico';
-  const radioInicial = document.querySelector(`input[name="plano"][value="${planoInicial}"]`);
-  if (radioInicial) radioInicial.checked = true;
-  atualizarPlano(planoInicial);
-
-  // Destacar plano selecionado
-  document.querySelectorAll('input[name="plano"]').forEach(radio => {
-    radio.addEventListener('change', (e) => atualizarPlano(e.target.value));
-  });
-
-  function atualizarPlano(plano) {
-    const labelBasico = document.getElementById('label-basico');
-    const labelPro = document.getElementById('label-pro');
-    if (plano === 'pro') {
-      labelPro.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-accent-400 bg-orange-50 cursor-pointer';
-      labelBasico.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer';
-    } else {
-      labelBasico.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-primary-300 bg-primary-50 cursor-pointer';
-      labelPro.className = 'flex items-start gap-3 p-4 rounded-lg border-2 border-gray-200 bg-white cursor-pointer';
-    }
-  }
-
+  // Submit
   const form = document.getElementById('form-cadastro');
-  const btn = form?.querySelector('button[type="submit"]');
+  const btn = document.getElementById('btn-submit');
+  const erroDiv = document.getElementById('form-erro');
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-
-    const data = new FormData(form);
-    const plano = data.get('plano');
-    const nome = data.get('nome');
-    const email = data.get('email');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
 
     btn.disabled = true;
-    btn.textContent = 'Aguarde...';
+    btn.textContent = 'Criando sua conta...';
+    erroDiv.classList.add('hidden');
+
+    const data = new FormData(form);
 
     try {
-      // Enviar dados para API que salva no Supabase e cria sessão Stripe
-      const res = await fetch('/api/stripe-checkout', {
+      const res = await fetch('/api/cadastro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          plano,
-          email,
-          nome,
+          nome: data.get('nome'),
+          email: data.get('email'),
           senha: data.get('senha'),
           whatsapp: data.get('whatsapp'),
           cpf_cnpj: data.get('cpf_cnpj'),
@@ -253,14 +216,17 @@ const estados = [
 
       const json = await res.json();
 
-      if (!json.url) throw new Error(json.error || 'Erro ao criar sessão de pagamento');
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Erro ao criar conta');
+      }
 
-      window.location.href = json.url;
+      window.location.href = '/painel?cadastro=sucesso';
 
     } catch (err) {
-      alert('Erro: ' + (err.message || 'Tente novamente.'));
+      erroDiv.textContent = err.message || 'Erro inesperado. Tente novamente.';
+      erroDiv.classList.remove('hidden');
       btn.disabled = false;
-      btn.textContent = 'Criar conta e prosseguir para pagamento';
+      btn.textContent = 'Criar minha conta grátis →';
     }
   });
 </script>
