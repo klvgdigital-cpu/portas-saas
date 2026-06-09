@@ -19,27 +19,26 @@ export const POST: APIRoute = async ({ request }) => {
       import.meta.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    // 1. Criar usuário no Supabase Auth
+    // 1. Criar usuario no Supabase Auth
     if (senha) {
       const { error: authError } = await supabase.auth.admin.createUser({
         email,
         password: senha,
-        email_confirm: true, // confirma automaticamente sem precisar de e-mail
+        email_confirm: true,
         user_metadata: { nome, plano }
       });
-
       if (authError && !authError.message.includes('already registered')) {
         console.error('Auth error:', authError);
       }
     }
 
-    // 2. Salvar dados na tabela profissionais
+    // 2. Salvar dados na tabela profissionais (service role ignora RLS)
     const slug = (nome || email).toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') + '-' + Date.now();
 
-    const { error: dbError } = await supabase.from('profissionais').upsert({
+    const { error: dbError, data: dbData } = await supabase.from('profissionais').upsert({
       slug,
       nome: nome || '',
       email,
@@ -55,13 +54,16 @@ export const POST: APIRoute = async ({ request }) => {
     }, { onConflict: 'email' });
 
     if (dbError) {
-      console.error('Supabase error:', dbError);
+      console.error('Supabase upsert error:', JSON.stringify(dbError));
+      // Nao bloqueia o checkout — o webhook vai tentar atualizar apos pagamento
+    } else {
+      console.log('Profissional salvo no banco:', email);
     }
 
-    // 3. Criar sessão Stripe
+    // 3. Criar sessao Stripe
     const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
     if (!stripeKey) {
-      return new Response(JSON.stringify({ error: 'Stripe não configurado' }), {
+      return new Response(JSON.stringify({ error: 'Stripe nao configurado' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
