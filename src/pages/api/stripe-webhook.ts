@@ -99,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
     const sub = event.data.object as Stripe.Subscription;
     await supabase
       .from('profissionais')
-      .update({ status: 'inativo', plano: 'basico' })
+      .update({ status: 'suspenso', plano: 'basico' })
       .eq('stripe_subscription_id', sub.id);
   }
 

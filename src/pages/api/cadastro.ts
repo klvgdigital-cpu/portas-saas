@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
       tipos_porta: tipos_porta || 'ambas',
       anos_experiencia: Number(anos_experiencia) || 1,
       plano: 'basico',
-      status: 'ativo',
+      status: 'pendente',
     }, { onConflict: 'email' });
 
     if (dbError) {
@@ -86,23 +86,22 @@ export const POST: APIRoute = async ({ request }) => {
       await resend.emails.send({
         from: 'PortaFácil <contato@portafacil.net>',
         to: email,
-        subject: '🎉 Bem-vindo à PortaFácil! Seu perfil está ativo',
+        subject: '👋 Cadastro recebido na PortaFácil — falta um passo!',
         html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"></head>
 <body style="font-family:system-ui,sans-serif;background:#f8f9fa;padding:24px;margin:0">
   <div style="max-width:560px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)">
     <div style="background:#1e3a5f;padding:24px 32px">
-      <h1 style="color:white;margin:0;font-size:20px">🎉 Bem-vindo à PortaFácil!</h1>
-      <p style="color:#b0c4de;margin:6px 0 0;font-size:14px">Seu perfil está ativo e você já aparece nas buscas</p>
+      <h1 style="color:white;margin:0;font-size:20px">👋 Cadastro recebido!</h1>
+      <p style="color:#b0c4de;margin:6px 0 0;font-size:14px">Falta só um passo para seu perfil ficar visível</p>
     </div>
     <div style="padding:32px">
-      <p style="color:#444;margin:0 0 20px">Olá, <strong>${nome}</strong>! Sua conta foi criada com sucesso.</p>
-      <div style="background:#dcfce7;border-radius:8px;padding:16px 20px;margin-bottom:24px">
-        <p style="color:#166534;margin:0;font-size:14px;font-weight:500">✅ Perfil ativo na plataforma<br>✅ Aparecendo nas buscas de clientes</p>
+      <p style="color:#444;margin:0 0 20px">Olá, <strong>${nome}</strong>! Recebemos seu cadastro com sucesso.</p>
+      <div style="background:#fff7ed;border-radius:8px;padding:16px 20px;margin-bottom:24px">
+        <p style="color:#9a3412;margin:0;font-size:14px;font-weight:500">⏳ Perfil pendente de ativação<br>Para aparecer nas buscas de clientes, assine um plano a partir de <strong>R$ 79/mês</strong>.</p>
       </div>
-      <p style="color:#444;font-size:14px;margin:0 0 20px">Para receber mais leads e ter destaque na plataforma, assine um de nossos planos a partir de <strong>R$ 79/mês</strong>.</p>
-      <a href="${siteUrl}/painel" style="display:inline-block;background:#f97316;color:white;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:15px;margin-right:12px">Acessar painel →</a>
+      <a href="${siteUrl}/painel" style="display:inline-block;background:#f97316;color:white;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:15px;margin-right:12px">Ativar meu perfil →</a>
     </div>
     <div style="background:#f8f9fa;padding:16px 32px;border-top:1px solid #e5e7eb">
       <p style="color:#aaa;font-size:11px;margin:0">PortaFácil · <a href="${siteUrl}" style="color:#aaa">portafacil.net</a></p>
