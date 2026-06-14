@@ -39,6 +39,13 @@ try {
 }
 
 const temPlano = profissional?.stripe_subscription_id || profissional?.plano === 'pro';
+
+// Calcular trial
+const trialEndsAt = profissional?.trial_ends_at ? new Date(profissional.trial_ends_at) : null;
+const hoje = new Date();
+const emTrial = trialEndsAt && trialEndsAt > hoje && !profissional?.stripe_subscription_id;
+const diasRestantesTrial = emTrial ? Math.ceil((trialEndsAt.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+const trialExpirado = trialEndsAt && trialEndsAt <= hoje && !profissional?.stripe_subscription_id;
 ---
 <BaseLayout title="Painel do Profissional — PortaFácil">
   <Header />
@@ -51,7 +58,31 @@ const temPlano = profissional?.stripe_subscription_id || profissional?.plano ===
           <span class="text-2xl">🎉</span>
           <div>
             <p class="font-semibold text-green-900">Cadastro realizado! Seu perfil já está ativo.</p>
-            <p class="text-green-700 text-sm mt-1">Você já aparece nas buscas de clientes. Assine um plano para receber mais leads e ter destaque.</p>
+            <p class="text-green-700 text-sm mt-1">{emTrial ? `Você tem ${diasRestantesTrial} dias grátis para testar a plataforma. Assine um plano antes de ${trialEndsAt?.toLocaleDateString('pt-BR')} para continuar aparecendo nas buscas.` : 'Você já aparece nas buscas de clientes. Assine um plano para receber mais leads e ter destaque.'}</p>
+          </div>
+        </div>
+      )}
+
+      <!-- Banner de trial expirando -->
+      {emTrial && !cadastroSucesso && (
+        <div class={`rounded-xl p-5 mb-6 flex items-start gap-3 ${diasRestantesTrial <= 2 ? 'bg-red-50 border border-red-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+          <span class="text-2xl">{diasRestantesTrial <= 2 ? '🚨' : '⏳'}</span>
+          <div>
+            <p class={`font-semibold ${diasRestantesTrial <= 2 ? 'text-red-900' : 'text-yellow-900'}`}>
+              {diasRestantesTrial <= 2 ? `Seu trial expira em ${diasRestantesTrial} dia${diasRestantesTrial === 1 ? '' : 's'}!` : `Trial gratuito: ${diasRestantesTrial} dias restantes`}
+            </p>
+            <p class={`text-sm mt-1 ${diasRestantesTrial <= 2 ? 'text-red-700' : 'text-yellow-700'}`}>Assine um plano para continuar visível nas buscas após o período gratuito.</p>
+          </div>
+        </div>
+      )}
+
+      <!-- Trial expirado sem assinatura -->
+      {trialExpirado && profissional?.status !== 'ativo' && (
+        <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 flex items-start gap-3">
+          <span class="text-2xl">🔒</span>
+          <div>
+            <p class="font-semibold text-red-900">Seu período gratuito terminou</p>
+            <p class="text-red-700 text-sm mt-1">Seu perfil foi desativado. Assine um plano para voltar a aparecer nas buscas de clientes.</p>
           </div>
         </div>
       )}
@@ -119,8 +150,10 @@ const temPlano = profissional?.stripe_subscription_id || profissional?.plano ===
           </h1>
           {profissional && (
             <p class="text-sm text-gray-500 mt-1">
-              <span class={`font-medium ${profissional.status === 'ativo' ? 'text-green-600' : 'text-orange-500'}`}>
-                {profissional.status === 'ativo' ? '🟢 Visível nas buscas' : '🔒 Perfil não visível (pendente)'}
+              <span class={`font-medium ${profissional.status === 'ativo' ? (emTrial ? 'text-yellow-600' : 'text-green-600') : 'text-orange-500'}`}>
+                {profissional.status === 'ativo' 
+                  ? (emTrial ? `⏳ Trial — ${diasRestantesTrial} dias restantes` : '🟢 Visível nas buscas') 
+                  : '🔒 Perfil não visível (pendente)'}
               </span>
               {' · '}Plano: <span class={`font-medium ${temPlano ? 'text-green-600' : 'text-gray-400'}`}>
                 {temPlano ? (profissional.plano === 'pro' ? 'Pro ⭐' : 'Básico') : 'Sem plano ativo'}

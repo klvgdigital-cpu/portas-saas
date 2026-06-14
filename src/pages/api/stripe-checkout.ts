@@ -81,6 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
       mode: 'subscription',
       customer_email: email,
       metadata: { nome: nome || '', plano, slug },
+      subscription_data: { trial_period_days: 7 },
       success_url: `${siteUrl}/painel?cadastro=sucesso`,
       cancel_url: `${siteUrl}/planos`,
     });
