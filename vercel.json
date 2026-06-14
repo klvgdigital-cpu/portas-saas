@@ -11,7 +11,11 @@
     },
     {
       "source": "/profissionais/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=3600" }]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=300" }]
+    },
+    {
+      "source": "/planos",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=300" }]
     },
     {
       "source": "/",
