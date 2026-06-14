@@ -5,6 +5,27 @@ import Footer from '../components/Footer.astro';
 
 const planos = [
   {
+    id: 'free',
+    nome: '7 Dias Grátis',
+    preco: 'R$ 0',
+    periodo: '/7 dias',
+    descricao: 'Experimente sem compromisso. Sem cartão de crédito.',
+    destaque: false,
+    badge: '🎁 Grátis',
+    recursos: [
+      { texto: 'Perfil ativo na plataforma', incluso: true },
+      { texto: 'Visível nas buscas de clientes', incluso: true },
+      { texto: 'Até 3 leads no período', incluso: true },
+      { texto: 'Sem cartão de crédito', incluso: true },
+      { texto: 'Destaque nos resultados', incluso: false },
+      { texto: 'Leads ilimitados', incluso: false },
+      { texto: 'Selo "Verificado"', incluso: false },
+      { texto: 'Suporte prioritário', incluso: false },
+    ],
+    cta: 'Começar grátis agora',
+    href: '/cadastro-profissional',
+  },
+  {
     id: 'basico',
     nome: 'Plano Básico',
     preco: 'R$ 79',
@@ -49,7 +70,7 @@ const planos = [
 const faqs = [
   { p: 'Preciso pagar comissão por serviço realizado?', r: 'Não. Você paga apenas a mensalidade do plano escolhido. Não há cobrança por lead recebido nem comissão sobre os serviços realizados.' },
   { p: 'Posso cancelar quando quiser?', r: 'Sim. Você pode cancelar a qualquer momento pelo painel do profissional, sem multa ou fidelidade.' },
-  { p: 'Quando meu perfil fica ativo?', r: 'Após o cadastro e aprovação da equipe PortaFácil (em até 24h úteis), seu perfil fica imediatamente visível para os clientes.' },
+  { p: 'Quando meu perfil fica ativo?', r: 'Imediatamente após o cadastro! Você tem 7 dias grátis para testar a plataforma e receber os primeiros clientes. Após o trial, assine um plano para continuar aparecendo nas buscas.' },
   { p: 'Posso fazer upgrade do plano depois?', r: 'Sim. Você pode fazer upgrade ou downgrade a qualquer momento pelo seu painel.' },
   { p: 'Como recebo os leads?', r: 'Você recebe uma notificação por e-mail e WhatsApp com os dados do cliente assim que ele solicitar um orçamento.' },
 ];
@@ -75,19 +96,24 @@ const faqs = [
     <!-- Planos -->
     <section class="section bg-gray-50">
       <div class="container">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {planos.map(plano => (
-            <div class={`card flex flex-col ${plano.destaque ? 'border-2 border-accent-500 relative' : ''}`}>
+            <div class={`card flex flex-col ${plano.destaque ? 'border-2 border-accent-500 relative' : ''} ${plano.id === 'free' ? 'border-2 border-green-400 relative' : ''}`}>
               {plano.destaque && (
                 <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wide">
                   Mais popular
+                </span>
+              )}
+              {plano.id === 'free' && (
+                <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wide">
+                  🎁 Comece grátis
                 </span>
               )}
               <div class="mb-5">
                 <h2 class="text-lg font-bold text-gray-900 mb-1">{plano.nome}</h2>
                 <p class="text-gray-500 text-sm mb-3">{plano.descricao}</p>
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl font-black text-primary-600">{plano.preco}</span>
+                  <span class={`text-3xl font-black ${plano.id === 'free' ? 'text-green-600' : 'text-primary-600'}`}>{plano.preco}</span>
                   <span class="text-gray-400 text-sm">{plano.periodo}</span>
                 </div>
               </div>
@@ -104,7 +130,7 @@ const faqs = [
                 ))}
               </ul>
 
-              <a href={plano.href} class={plano.destaque ? 'btn-primary w-full text-center' : 'btn-secondary w-full text-center'}>
+              <a href={plano.href} class={plano.destaque ? 'btn-primary w-full text-center' : plano.id === 'free' ? 'w-full text-center py-3 px-6 rounded-lg font-semibold bg-green-500 hover:bg-green-600 text-white transition-colors' : 'btn-secondary w-full text-center'}>
                 {plano.cta}
               </a>
             </div>
