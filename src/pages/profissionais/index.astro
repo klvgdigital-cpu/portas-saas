@@ -75,7 +75,7 @@ const estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG
         ) : (
           <>
             <p class="text-sm text-gray-500 mb-6">
-              {profissionais.length} profissional{profissionais.length !== 1 ? 'is' : ''} encontrado{profissionais.length !== 1 ? 's' : ''}
+              {profissionais.length} {profissionais.length !== 1 ? 'profissionais' : 'profissional'} encontrado{profissionais.length !== 1 ? 's' : ''}
               {cidade && ` em ${cidade}`}
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
