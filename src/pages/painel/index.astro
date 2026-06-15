@@ -15,23 +15,71 @@ const assinaturaSucesso = Astro.url.searchParams.get('assinatura') === 'sucesso'
 // Tentar pegar sessão do usuário logado
 let profissional = null;
 try {
-  const authHeader = Astro.request.headers.get('cookie') || '';
-  const accessTokenMatch = authHeader.match(/sb-[^-]+-auth-token=([^;]+)/);
+  const cookieHeader = Astro.request.headers.get('cookie') || '';
   
-  if (accessTokenMatch) {
-    const tokenData = JSON.parse(decodeURIComponent(accessTokenMatch[1]));
-    const accessToken = tokenData?.access_token || tokenData?.[0];
-    
-    if (accessToken) {
-      const { data: { user } } = await supabase.auth.getUser(accessToken);
-      if (user?.email) {
-        const { data } = await supabase
-          .from('profissionais')
-          .select('*')
-          .eq('email', user.email)
-          .single();
-        profissional = data;
+  // Tenta todos os padrões de cookie do Supabase
+  const cookieParts = cookieHeader.split(';').map(c => c.trim());
+  let accessToken: string | null = null;
+
+  for (const part of cookieParts) {
+    const [key, ...rest] = part.split('=');
+    const value = rest.join('=');
+    if (key && key.trim().match(/sb-.+-auth-token/)) {
+      try {
+        const decoded = decodeURIComponent(value);
+        // Formato array ["access_token","refresh_token",...]
+        if (decoded.startsWith('[')) {
+          const arr = JSON.parse(decoded);
+          accessToken = arr[0] || null;
+        } else {
+          const obj = JSON.parse(decoded);
+          accessToken = obj?.access_token || null;
+        }
+        if (accessToken) break;
+      } catch {}
+    }
+    // Formato base64 chunk (sb-xxx-auth-token.0, .1)
+    if (key && key.trim().match(/sb-.+-auth-token\.\d+/)) {
+      // Será remontado abaixo
+    }
+  }
+
+  // Fallback: remontar chunks base64 sb-xxx-auth-token.0 + .1
+  if (!accessToken) {
+    const chunks: Record<string, string> = {};
+    for (const part of cookieParts) {
+      const eqIdx = part.indexOf('=');
+      const key = part.slice(0, eqIdx).trim();
+      const value = part.slice(eqIdx + 1);
+      const chunkMatch = key.match(/^(sb-.+-auth-token)\.(\d+)$/);
+      if (chunkMatch) {
+        chunks[chunkMatch[2]] = value;
       }
+    }
+    if (Object.keys(chunks).length > 0) {
+      const joined = Object.keys(chunks).sort().map(k => chunks[k]).join('');
+      try {
+        const decoded = decodeURIComponent(joined);
+        if (decoded.startsWith('[')) {
+          const arr = JSON.parse(decoded);
+          accessToken = arr[0] || null;
+        } else {
+          const obj = JSON.parse(decoded);
+          accessToken = obj?.access_token || null;
+        }
+      } catch {}
+    }
+  }
+
+  if (accessToken) {
+    const { data: { user } } = await supabase.auth.getUser(accessToken);
+    if (user?.email) {
+      const { data } = await supabase
+        .from('profissionais')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+      profissional = data;
     }
   }
 } catch (e) {
