@@ -38,7 +38,7 @@ try {
   // Silently fail — painel mostra estado genérico
 }
 
-const temPlano = profissional?.stripe_subscription_id || profissional?.plano === 'pro';
+const temPlano = profissional?.stripe_subscription_id || profissional?.plano === 'pro' || (profissional?.plano === 'basico' && profissional?.status === 'ativo');
 
 // Calcular trial
 const trialEndsAt = profissional?.trial_ends_at ? new Date(profissional.trial_ends_at) : null;
