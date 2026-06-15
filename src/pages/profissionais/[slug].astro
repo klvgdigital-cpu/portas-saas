@@ -54,7 +54,7 @@ const localBusinessJsonLd = {
   breadcrumbs={[
     {label:'Home', href:'/'},
     {label:'Profissionais', href:'/profissionais'},
-    {label:profissional.nome, href:`/profissionais/${slug}`},
+    {label:profissional.nome, href:'/profissionais/' + slug},
   ]}
 >
   <script type="application/ld+json" set:html={JSON.stringify(localBusinessJsonLd)} slot="head" />
@@ -261,7 +261,8 @@ const localBusinessJsonLd = {
       }).catch(() => {}); // silencioso
     }
   });
-    e.preventDefault();
+
+  document.getElementById('form-orcamento')?.addEventListener('submit', async (e) => {
     const form = e.target as HTMLFormElement;
     const data = new FormData(form);
     const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
