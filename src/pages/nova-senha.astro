@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+<BaseLayout
+  title="Nova senha — PortaFácil"
+  description="Cadastre uma nova senha para acessar sua conta."
+>
+  <Header />
+  <main class="section bg-gray-50 min-h-screen">
+    <div class="container max-w-md">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Criar nova senha</h1>
+        <p class="text-gray-500">Digite sua nova senha abaixo</p>
+      </div>
+      <div class="card">
+        <div id="msg-erro" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700"></div>
+        <div id="msg-sucesso" class="hidden bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-700"></div>
+
+        <form id="form-nova-senha" class="space-y-4" novalidate>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="senha">Nova senha</label>
+            <input id="senha" type="password" name="senha" required class="input-field" placeholder="Mínimo 8 caracteres" minlength="8" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="confirmar">Confirmar senha</label>
+            <input id="confirmar" type="password" name="confirmar" required class="input-field" placeholder="Repita a nova senha" />
+          </div>
+          <button type="submit" id="btn-salvar" class="btn-primary w-full">Salvar nova senha</button>
+        </form>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  const supabaseUrl = document.querySelector('meta[name="sb-url"]')?.getAttribute('content') || '';
+  const supabaseKey = document.querySelector('meta[name="sb-key"]')?.getAttribute('content') || '';
+
+  const msgErro = document.getElementById('msg-erro') as HTMLElement;
+  const msgSucesso = document.getElementById('msg-sucesso') as HTMLElement;
+
+  function showErro(msg: string) {
+    msgErro.textContent = msg;
+    msgErro.classList.remove('hidden');
+    msgSucesso.classList.add('hidden');
+  }
+
+  function showSucesso(msg: string) {
+    msgSucesso.textContent = msg;
+    msgSucesso.classList.remove('hidden');
+    msgErro.classList.add('hidden');
+  }
+
+  document.getElementById('form-nova-senha')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const senha = (document.getElementById('senha') as HTMLInputElement).value;
+    const confirmar = (document.getElementById('confirmar') as HTMLInputElement).value;
+    const btn = document.getElementById('btn-salvar') as HTMLButtonElement;
+
+    if (senha.length < 8) {
+      showErro('A senha deve ter no mínimo 8 caracteres.');
+      return;
+    }
+
+    if (senha !== confirmar) {
+      showErro('As senhas não conferem.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const { error } = await supabase.auth.updateUser({ password: senha });
+
+      if (error) {
+        showErro('Erro ao atualizar senha. O link pode ter expirado. Solicite um novo.');
+        btn.disabled = false;
+        btn.textContent = 'Salvar nova senha';
+        return;
+      }
+
+      showSucesso('Senha atualizada com sucesso! Redirecionando para o login...');
+      setTimeout(() => { window.location.href = '/login'; }, 2000);
+
+    } catch (err) {
+      showErro('Erro ao conectar. Tente novamente.');
+      btn.disabled = false;
+      btn.textContent = 'Salvar nova senha';
+    }
+  });
+</script>
