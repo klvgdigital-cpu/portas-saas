@@ -30,7 +30,30 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Perfil não encontrado' }), { status: 404 });
     }
 
-    return new Response(JSON.stringify({ profissional: prof }), {
+    // Contar leads do mês atual
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    inicioMes.setHours(0, 0, 0, 0);
+
+    const { count: leadsCount } = await supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('profissional_id', prof.id)
+      .gte('created_at', inicioMes.toISOString());
+
+    // Total de leads (histórico)
+    const { count: leadsTotal } = await supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('profissional_id', prof.id);
+
+    return new Response(JSON.stringify({
+      profissional: prof,
+      metricas: {
+        leads_mes: leadsCount || 0,
+        leads_total: leadsTotal || 0,
+      }
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

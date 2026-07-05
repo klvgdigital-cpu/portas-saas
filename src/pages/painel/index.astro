@@ -167,9 +167,9 @@ import Footer from '../../components/Footer.astro';
     const res = await fetch('/api/painel-dados', { headers: { 'Authorization': `Bearer ${accessToken}` } });
     if (!res.ok) { show('nao-logado'); return; }
 
-    const { profissional: prof } = await res.json();
+    const { profissional: prof, metricas } = await res.json();
     profissional = prof;
-    render(prof);
+    render(prof, metricas);
     show('painel');
 
     document.getElementById('btn-sair')?.addEventListener('click', async () => {
@@ -178,7 +178,8 @@ import Footer from '../../components/Footer.astro';
     });
   }
 
-  function render(p: any) {
+  function render(p: any, m: any) {
+    setText('stat-leads', String(m?.leads_mes ?? 0));
     setText('nome-display', p.nome || 'Complete seu perfil');
     setText('email-display', p.email);
 
