@@ -291,8 +291,8 @@ import Footer from '../../components/Footer.astro';
     try {
       const res = await fetch('/api/assinar', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: profissional.email, plano }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ plano }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

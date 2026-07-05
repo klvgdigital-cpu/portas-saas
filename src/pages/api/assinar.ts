@@ -21,12 +21,12 @@ async function asaasFetch(path: string, options: RequestInit = {}) {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const { email, plano } = body;
-
-    if (!email || !plano) {
-      return new Response(JSON.stringify({ error: 'Dados incompletos' }), {
-        status: 400,
+    // Autenticação obrigatória — o email vem da sessão, não do corpo
+    const authHeader = request.headers.get('authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Não autenticado' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -35,6 +35,25 @@ export const POST: APIRoute = async ({ request }) => {
       import.meta.env.PUBLIC_SUPABASE_URL,
       import.meta.env.SUPABASE_SERVICE_ROLE_KEY
     );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user?.email) {
+      return new Response(JSON.stringify({ error: 'Sessão inválida' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const body = await request.json();
+    const { plano } = body;
+    const email = user.email;
+
+    if (!plano) {
+      return new Response(JSON.stringify({ error: 'Dados incompletos' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     const { data: prof, error: fetchError } = await supabase
       .from('profissionais')
