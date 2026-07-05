@@ -2,262 +2,137 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-const cadastroSucesso = Astro.url.searchParams.get('cadastro') === 'sucesso';
-const assinaturaSucesso = Astro.url.searchParams.get('assinatura') === 'sucesso';
-
-// Tentar pegar sessão do usuário logado
-let profissional = null;
-try {
-  const cookieHeader = Astro.request.headers.get('cookie') || '';
-  
-  // Tenta todos os padrões de cookie do Supabase
-  const cookieParts = cookieHeader.split(';').map(c => c.trim());
-  let accessToken: string | null = null;
-
-  for (const part of cookieParts) {
-    const [key, ...rest] = part.split('=');
-    const value = rest.join('=');
-    if (key && key.trim().match(/sb-.+-auth-token/)) {
-      try {
-        const decoded = decodeURIComponent(value);
-        // Formato array ["access_token","refresh_token",...]
-        if (decoded.startsWith('[')) {
-          const arr = JSON.parse(decoded);
-          accessToken = arr[0] || null;
-        } else {
-          const obj = JSON.parse(decoded);
-          accessToken = obj?.access_token || null;
-        }
-        if (accessToken) break;
-      } catch {}
-    }
-    // Formato base64 chunk (sb-xxx-auth-token.0, .1)
-    if (key && key.trim().match(/sb-.+-auth-token\.\d+/)) {
-      // Será remontado abaixo
-    }
-  }
-
-  // Fallback: remontar chunks base64 sb-xxx-auth-token.0 + .1
-  if (!accessToken) {
-    const chunks: Record<string, string> = {};
-    for (const part of cookieParts) {
-      const eqIdx = part.indexOf('=');
-      const key = part.slice(0, eqIdx).trim();
-      const value = part.slice(eqIdx + 1);
-      const chunkMatch = key.match(/^(sb-.+-auth-token)\.(\d+)$/);
-      if (chunkMatch) {
-        chunks[chunkMatch[2]] = value;
-      }
-    }
-    if (Object.keys(chunks).length > 0) {
-      const joined = Object.keys(chunks).sort().map(k => chunks[k]).join('');
-      try {
-        const decoded = decodeURIComponent(joined);
-        if (decoded.startsWith('[')) {
-          const arr = JSON.parse(decoded);
-          accessToken = arr[0] || null;
-        } else {
-          const obj = JSON.parse(decoded);
-          accessToken = obj?.access_token || null;
-        }
-      } catch {}
-    }
-  }
-
-  if (accessToken) {
-    const { data: { user } } = await supabase.auth.getUser(accessToken);
-    if (user?.email) {
-      const { data } = await supabase
-        .from('profissionais')
-        .select('*')
-        .eq('email', user.email)
-        .single();
-      profissional = data;
-    }
-  }
-} catch (e) {
-  // Silently fail — painel mostra estado genérico
-}
-
-const temPlano = profissional?.asaas_subscription_id || profissional?.plano === 'pro' || (profissional?.plano === 'basico' && profissional?.status === 'ativo');
-
-// Calcular trial
-const trialEndsAt = profissional?.trial_ends_at ? new Date(profissional.trial_ends_at) : null;
-const hoje = new Date();
-const emTrial = trialEndsAt && trialEndsAt > hoje && !profissional?.asaas_subscription_id;
-const diasRestantesTrial = emTrial ? Math.ceil((trialEndsAt.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-const trialExpirado = trialEndsAt && trialEndsAt <= hoje && !profissional?.asaas_subscription_id;
 ---
-<BaseLayout title="Painel do Profissional — PortaFácil">
+<BaseLayout title="Meu Painel — PortaFácil" description="Gerencie seu perfil profissional no PortaFácil.">
   <Header />
   <main class="section bg-gray-50 min-h-screen">
     <div class="container max-w-4xl">
 
-      <!-- Sucesso cadastro -->
-      {cadastroSucesso && profissional?.status === 'ativo' && (
-        <div class="bg-green-50 border border-green-200 rounded-xl p-5 mb-6 flex items-start gap-3">
-          <span class="text-2xl">🎉</span>
-          <div>
-            <p class="font-semibold text-green-900">Cadastro realizado! Seu perfil já está ativo.</p>
-            <p class="text-green-700 text-sm mt-1">{emTrial ? 'Você tem ' + diasRestantesTrial + ' dias grátis para testar a plataforma. Assine um plano para continuar aparecendo nas buscas.' : 'Você já aparece nas buscas de clientes. Assine um plano para receber mais leads e ter destaque.'}</p>
-          </div>
-        </div>
-      )}
+      <!-- Loading -->
+      <div id="loading" class="text-center py-20">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent"></div>
+        <p class="text-gray-500 mt-4">Carregando seu painel...</p>
+      </div>
 
-      <!-- Banner de trial expirando -->
-      {emTrial && !cadastroSucesso && (
-        <div class={`rounded-xl p-5 mb-6 flex items-start gap-3 ${diasRestantesTrial <= 2 ? 'bg-red-50 border border-red-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-          <span class="text-2xl">{diasRestantesTrial <= 2 ? '🚨' : '⏳'}</span>
-          <div>
-            <p class={`font-semibold ${diasRestantesTrial <= 2 ? 'text-red-900' : 'text-yellow-900'}`}>
-              {diasRestantesTrial <= 2 ? 'Seu trial expira em ' + diasRestantesTrial + (diasRestantesTrial === 1 ? ' dia!' : ' dias!') : 'Trial gratuito: ' + diasRestantesTrial + ' dias restantes'}
-            </p>
-            <p class={`text-sm mt-1 ${diasRestantesTrial <= 2 ? 'text-red-700' : 'text-yellow-700'}`}>Assine um plano para continuar visível nas buscas após o período gratuito.</p>
-          </div>
-        </div>
-      )}
+      <!-- Painel (oculto até carregar) -->
+      <div id="painel" class="hidden">
 
-      <!-- Trial expirado sem assinatura -->
-      {trialExpirado && profissional?.status !== 'ativo' && (
-        <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 flex items-start gap-3">
-          <span class="text-2xl">🔒</span>
-          <div>
-            <p class="font-semibold text-red-900">Seu período gratuito terminou</p>
-            <p class="text-red-700 text-sm mt-1">Seu perfil foi desativado. Assine um plano para voltar a aparecer nas buscas de clientes.</p>
-          </div>
-        </div>
-      )}
+        <!-- Mensagens -->
+        <div id="msg-sucesso" class="hidden bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-700"></div>
+        <div id="msg-erro" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700"></div>
 
-      {cadastroSucesso && profissional?.status !== 'ativo' && (
-        <div class="bg-orange-50 border border-orange-200 rounded-xl p-5 mb-6 flex items-start gap-3">
-          <span class="text-2xl">⏳</span>
-          <div>
-            <p class="font-semibold text-orange-900">Cadastro recebido! Falta um passo para ativar seu perfil.</p>
-            <p class="text-orange-700 text-sm mt-1">Seu perfil ainda não aparece nas buscas. Assine um plano abaixo para ativá-lo.</p>
-          </div>
-        </div>
-      )}
-
-      <!-- Sucesso assinatura -->
-      {assinaturaSucesso && (
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 flex items-start gap-3">
-          <span class="text-2xl">🚀</span>
-          <div>
-            <p class="font-semibold text-blue-900">Assinatura ativada com sucesso!</p>
-            <p class="text-blue-700 text-sm mt-1">Seu plano está ativo. Agora você tem acesso a todos os benefícios.</p>
-          </div>
-        </div>
-      )}
-
-      <!-- Banner de upgrade (só para quem não tem plano pago) -->
-      {!temPlano && !assinaturaSucesso && (
-        <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 mb-8 text-white">
-          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <!-- Banner assinatura (só aparece se não tiver plano ativo) -->
+        <div id="banner-assinar" class="hidden bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 mb-8 text-white">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              {profissional?.status === 'ativo' ? (
-                <>
-                  <p class="font-bold text-lg mb-1">⚡ Receba mais clientes com um plano</p>
-                  <p class="text-orange-100 text-sm">Seu perfil está ativo, mas com um plano você aparece em destaque e recebe leads ilimitados.</p>
-                </>
-              ) : (
-                <>
-                  <p class="font-bold text-lg mb-1">🔒 Seu perfil ainda não está visível</p>
-                  <p class="text-orange-100 text-sm">Assine um plano para ativar seu perfil e aparecer nas buscas de clientes.</p>
-                </>
-              )}
-              <div class="flex gap-4 mt-3 text-sm">
-                <span class="flex items-center gap-1">✅ Leads ilimitados</span>
-                <span class="flex items-center gap-1">✅ Destaque na busca</span>
-                <span class="flex items-center gap-1">✅ Selo verificado</span>
+              <h2 class="text-xl font-bold mb-1">🔒 Seu perfil ainda não está visível</h2>
+              <p class="text-orange-100 text-sm mb-2">Assine um plano para ativar seu perfil e aparecer nas buscas de clientes.</p>
+              <div class="flex flex-wrap gap-3 text-sm">
+                <span>✅ Leads ilimitados</span>
+                <span>✅ Destaque na busca</span>
+                <span>✅ Selo verificado</span>
               </div>
             </div>
-            <div class="flex flex-col gap-2 min-w-fit" id="upgrade-buttons">
-              <button onclick="assinar('basico')" class="bg-white text-orange-600 font-bold px-6 py-2.5 rounded-lg hover:bg-orange-50 transition-colors text-sm whitespace-nowrap">
-                Básico — R$ 79/mês
-              </button>
-              <button onclick="assinar('pro')" class="bg-orange-800 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-orange-900 transition-colors text-sm whitespace-nowrap">
-                Pro — R$ 149/mês ⭐
-              </button>
+            <div class="flex flex-col gap-2">
+              <button onclick="assinar('basico')" class="bg-white text-orange-600 font-bold px-6 py-2.5 rounded-lg hover:bg-orange-50 transition-colors text-sm whitespace-nowrap">Básico — R$ 79/mês</button>
+              <button onclick="assinar('pro')" class="bg-orange-800 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-orange-900 transition-colors text-sm whitespace-nowrap">Pro — R$ 149/mês ⭐</button>
             </div>
           </div>
         </div>
-      )}
 
-      <!-- Cabeçalho do painel -->
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">
-            {profissional ? `Olá, ${profissional.nome.split(' ')[0]}!` : 'Meu Painel'}
-          </h1>
-          {profissional && (
-            <p class="text-sm text-gray-500 mt-1">
-              <span class={`font-medium ${profissional.status === 'ativo' ? (emTrial ? 'text-yellow-600' : 'text-green-600') : 'text-orange-500'}`}>
-                {profissional.status === 'ativo' 
-                  ? (emTrial ? '⏳ Trial — ' + diasRestantesTrial + ' dias restantes' : '🟢 Visível nas buscas') 
-                  : '🔒 Perfil não visível (pendente)'}
-              </span>
-              {' · '}Plano: <span class={`font-medium ${temPlano ? 'text-green-600' : 'text-gray-400'}`}>
-                {temPlano ? (profissional.plano === 'pro' ? 'Pro ⭐' : 'Básico') : 'Sem plano ativo'}
-              </span>
-              {profissional.cidade && ` · ${profissional.cidade}, ${profissional.estado}`}
-            </p>
-          )}
+        <!-- Banner trial -->
+        <div id="banner-trial" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8 text-sm text-blue-800">
+          ⏳ Você está no período de teste gratuito. <span id="trial-dias" class="font-bold"></span> Assine um plano para não perder a visibilidade.
         </div>
-        {profissional?.status === 'ativo' && (
-          <a href={`/profissionais/${profissional.slug}`} class="btn-outline text-sm" target="_blank">
-            Ver perfil público →
-          </a>
-        )}
-      </div>
 
-      <!-- Cards de métricas -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {[
-          { icon: '📩', label: 'Leads recebidos', valor: '0', desc: 'Este mês' },
-          { icon: '👁️', label: 'Visualizações', valor: '0', desc: 'Do seu perfil' },
-          { icon: '⭐', label: 'Avaliações', valor: '0', desc: 'Média de clientes' },
-        ].map(card => (
-          <div class="bg-white border border-gray-200 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-2xl">{card.icon}</span>
-              <span class="text-2xl font-bold text-gray-900">{card.valor}</span>
+        <!-- Status ativo -->
+        <div id="banner-ativo" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 mb-8 text-sm text-green-800">
+          ✅ Seu perfil está <strong>ativo e visível</strong> nas buscas! Plano: <span id="plano-nome" class="font-bold"></span>
+        </div>
+
+        <!-- Cabeçalho perfil -->
+        <div class="flex items-center gap-4 mb-8">
+          <div class="relative">
+            <div id="foto-container" class="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-2xl font-bold text-orange-600 overflow-hidden">
+              <span id="foto-iniciais"></span>
+              <img id="foto-img" class="hidden w-full h-full object-cover" alt="Foto de perfil" />
             </div>
-            <p class="font-medium text-gray-900 text-sm">{card.label}</p>
-            <p class="text-xs text-gray-400 mt-0.5">{card.desc}</p>
+            <label for="foto-input" class="absolute -bottom-1 -right-1 bg-orange-500 text-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-orange-600 text-sm" title="Alterar foto">📷</label>
+            <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp" class="hidden" />
           </div>
-        ))}
-      </div>
+          <div>
+            <h1 id="nome-display" class="text-2xl font-bold text-gray-900"></h1>
+            <p id="email-display" class="text-gray-500 text-sm"></p>
+          </div>
+          <button id="btn-sair" class="ml-auto text-sm text-gray-400 hover:text-gray-600 underline">Sair</button>
+        </div>
 
-      <!-- Próximos passos -->
-      <div class="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 class="font-semibold text-gray-900 mb-4">Próximos passos para atrair mais clientes</h2>
-        <div class="space-y-3">
-          {[
-            { feito: profissional?.foto_url, texto: 'Adicione uma foto de perfil profissional', acao: 'Adicionar foto' },
-            { feito: profissional?.descricao?.length > 50, texto: 'Complete sua descrição de serviços', acao: 'Editar perfil' },
-            { feito: temPlano, texto: 'Assine um plano para aparecer em destaque', acao: 'Ver planos' },
-          ].map(passo => (
-            <div class={`flex items-center gap-3 p-3 rounded-lg ${passo.feito ? 'bg-green-50' : 'bg-gray-50'}`}>
-              <span class={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${passo.feito ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                {passo.feito ? '✓' : '•'}
-              </span>
-              <p class={`text-sm flex-1 ${passo.feito ? 'text-green-700 line-through' : 'text-gray-700'}`}>{passo.texto}</p>
+        <!-- Métricas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-leads">0</p><p class="text-sm text-gray-500">Leads recebidos<br/><span class="text-xs">Este mês</span></p></div><span class="text-2xl">📩</span></div></div>
+          <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-views">0</p><p class="text-sm text-gray-500">Visualizações<br/><span class="text-xs">Do seu perfil</span></p></div><span class="text-2xl">👁️</span></div></div>
+          <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-aval">0</p><p class="text-sm text-gray-500">Avaliações<br/><span class="text-xs">Média de clientes</span></p></div><span class="text-2xl">⭐</span></div></div>
+        </div>
+
+        <!-- Formulário de edição de perfil -->
+        <div class="card mb-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">Editar meu perfil</h2>
+          <form id="form-perfil" class="grid grid-cols-1 md:grid-cols-2 gap-4" novalidate>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+              <input type="text" id="f-nome" class="input-field" required />
             </div>
-          ))}
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+              <input type="tel" id="f-whatsapp" class="input-field" placeholder="(11) 99999-9999" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">CPF ou CNPJ</label>
+              <input type="text" id="f-cpf" class="input-field" placeholder="Necessário para assinatura" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Anos de experiência</label>
+              <input type="number" id="f-anos" class="input-field" min="1" max="60" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+              <input type="text" id="f-cidade" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <select id="f-estado" class="input-field">
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tipos de porta</label>
+              <select id="f-tipos" class="input-field">
+                <option value="automatica">Automática</option>
+                <option value="manual">Manual</option>
+                <option value="ambas">Automática e Manual</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Descrição dos seus serviços</label>
+              <textarea id="f-descricao" rows="4" class="input-field" placeholder="Conte sua experiência, especialidades, regiões que atende..."></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <button type="submit" id="btn-salvar" class="btn-primary">Salvar alterações</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="flex gap-3">
+          <a href="/profissionais" class="btn-secondary">Ver todos os profissionais</a>
+          <a href="https://wa.me/5511999999999" class="btn-secondary">Falar com suporte</a>
         </div>
       </div>
 
-      <!-- Links úteis -->
-      <div class="flex flex-col sm:flex-row gap-3 mt-6">
-        <a href="/profissionais" class="btn-outline text-sm text-center">Ver todos os profissionais</a>
-        <a href="mailto:contato@portafacil.net" class="btn-outline text-sm text-center">Falar com suporte</a>
+      <!-- Não logado -->
+      <div id="nao-logado" class="hidden text-center py-20">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Faça login para acessar seu painel</h1>
+        <p class="text-gray-500 mb-6">Você precisa estar logado para ver e editar seu perfil.</p>
+        <a href="/login" class="btn-primary">Ir para o login</a>
       </div>
 
     </div>
@@ -266,45 +141,167 @@ const trialExpirado = trialEndsAt && trialEndsAt <= hoje && !profissional?.asaas
 </BaseLayout>
 
 <script>
-  async function assinar(plano) {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = 'Aguarde...';
+  const sbUrl = document.querySelector('meta[name="sb-url"]')?.getAttribute('content') || '';
+  const sbKey = document.querySelector('meta[name="sb-key"]')?.getAttribute('content') || '';
 
-    // Pegar e-mail do usuário logado via Supabase
+  let accessToken = '';
+  let profissional: any = null;
+
+  function show(id: string) { document.getElementById(id)?.classList.remove('hidden'); }
+  function hide(id: string) { document.getElementById(id)?.classList.add('hidden'); }
+  function setText(id: string, text: string) { const el = document.getElementById(id); if (el) el.textContent = text; }
+
+  function msgOk(m: string) { const el = document.getElementById('msg-sucesso')!; el.textContent = m; el.classList.remove('hidden'); hide('msg-erro'); setTimeout(() => el.classList.add('hidden'), 4000); }
+  function msgErr(m: string) { const el = document.getElementById('msg-erro')!; el.textContent = m; el.classList.remove('hidden'); hide('msg-sucesso'); }
+
+  async function init() {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(sbUrl, sbKey);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    hide('loading');
+
+    if (!session) { show('nao-logado'); return; }
+    accessToken = session.access_token;
+
+    const res = await fetch('/api/painel-dados', { headers: { 'Authorization': `Bearer ${accessToken}` } });
+    if (!res.ok) { show('nao-logado'); return; }
+
+    const { profissional: prof } = await res.json();
+    profissional = prof;
+    render(prof);
+    show('painel');
+
+    document.getElementById('btn-sair')?.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/login';
+    });
+  }
+
+  function render(p: any) {
+    setText('nome-display', p.nome || 'Complete seu perfil');
+    setText('email-display', p.email);
+
+    if (p.foto_url) {
+      const img = document.getElementById('foto-img') as HTMLImageElement;
+      img.src = p.foto_url;
+      img.classList.remove('hidden');
+      hide('foto-iniciais');
+    } else {
+      const iniciais = (p.nome || p.email).split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase();
+      setText('foto-iniciais', iniciais);
+    }
+
+    // Status/banners
+    const temPlano = p.asaas_subscription_id && p.status === 'ativo';
+    const emTrial = p.status === 'trial' && p.trial_ends_at && new Date(p.trial_ends_at) > new Date();
+
+    if (p.status === 'ativo') {
+      show('banner-ativo');
+      setText('plano-nome', p.plano === 'pro' ? 'Pro ⭐' : 'Básico');
+    } else if (emTrial) {
+      show('banner-trial');
+      const dias = Math.ceil((new Date(p.trial_ends_at).getTime() - Date.now()) / 86400000);
+      setText('trial-dias', `Restam ${dias} dia${dias !== 1 ? 's' : ''}.`);
+      show('banner-assinar');
+    } else {
+      show('banner-assinar');
+    }
+
+    // Preencher formulário
+    (document.getElementById('f-nome') as HTMLInputElement).value = p.nome || '';
+    (document.getElementById('f-whatsapp') as HTMLInputElement).value = p.whatsapp || '';
+    (document.getElementById('f-cpf') as HTMLInputElement).value = p.cpf_cnpj || '';
+    (document.getElementById('f-anos') as HTMLInputElement).value = p.anos_experiencia || 1;
+    (document.getElementById('f-cidade') as HTMLInputElement).value = p.cidade || '';
+    (document.getElementById('f-estado') as HTMLSelectElement).value = p.estado || 'SP';
+    (document.getElementById('f-tipos') as HTMLSelectElement).value = p.tipos_porta || 'ambas';
+    (document.getElementById('f-descricao') as HTMLTextAreaElement).value = p.descricao || '';
+  }
+
+  // Salvar perfil
+  document.getElementById('form-perfil')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-salvar') as HTMLButtonElement;
+    btn.disabled = true; btn.textContent = 'Salvando...';
+
+    const body = {
+      nome: (document.getElementById('f-nome') as HTMLInputElement).value,
+      whatsapp: (document.getElementById('f-whatsapp') as HTMLInputElement).value,
+      cpf_cnpj: (document.getElementById('f-cpf') as HTMLInputElement).value,
+      anos_experiencia: (document.getElementById('f-anos') as HTMLInputElement).value,
+      cidade: (document.getElementById('f-cidade') as HTMLInputElement).value,
+      estado: (document.getElementById('f-estado') as HTMLSelectElement).value,
+      tipos_porta: (document.getElementById('f-tipos') as HTMLSelectElement).value,
+      descricao: (document.getElementById('f-descricao') as HTMLTextAreaElement).value,
+    };
+
     try {
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-      const supabase = createClient(
-        document.querySelector('meta[name="sb-url"]')?.content || '',
-        document.querySelector('meta[name="sb-key"]')?.content || ''
-      );
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      const email = session?.user?.email;
+      const res = await fetch('/api/atualizar-perfil', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      msgOk('Perfil atualizado com sucesso!');
+      setText('nome-display', body.nome);
+    } catch (err: any) {
+      msgErr(err.message || 'Erro ao salvar');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Salvar alterações';
+    }
+  });
 
-      if (!email) {
-        window.location.href = '/login?redirect=/painel';
-        return;
+  // Upload de foto
+  document.getElementById('foto-input')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { msgErr('Imagem muito grande (máx. 3MB)'); return; }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const res = await fetch('/api/atualizar-perfil', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+          body: JSON.stringify({ foto_base64: reader.result }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        const img = document.getElementById('foto-img') as HTMLImageElement;
+        img.src = data.foto_url;
+        img.classList.remove('hidden');
+        hide('foto-iniciais');
+        msgOk('Foto atualizada!');
+      } catch (err: any) {
+        msgErr(err.message || 'Erro ao enviar foto');
       }
+    };
+    reader.readAsDataURL(file);
+  });
 
+  // Assinar plano
+  async function assinar(plano: string) {
+    if (!profissional?.cpf_cnpj) {
+      msgErr('Preencha seu CPF/CNPJ no formulário abaixo antes de assinar.');
+      document.getElementById('f-cpf')?.focus();
+      return;
+    }
+    try {
       const res = await fetch('/api/assinar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, plano }),
+        body: JSON.stringify({ email: profissional.email, plano }),
       });
-
-      const json = await res.json();
-      if (json.url) {
-        window.location.href = json.url;
-      } else {
-        throw new Error(json.error || 'Erro ao iniciar assinatura');
-      }
-    } catch (err) {
-      alert('Erro: ' + err.message);
-      btn.disabled = false;
-      btn.textContent = plano === 'pro' ? 'Pro — R$ 149/mês ⭐' : 'Básico — R$ 79/mês';
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.href = data.url;
+    } catch (err: any) {
+      msgErr(err.message || 'Erro ao iniciar assinatura');
     }
   }
+  (window as any).assinar = assinar;
 
-  window.assinar = assinar;
+  init();
 </script>
