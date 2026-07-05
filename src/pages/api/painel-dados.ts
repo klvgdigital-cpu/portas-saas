@@ -47,11 +47,31 @@ export const GET: APIRoute = async ({ request }) => {
       .select('id', { count: 'exact', head: true })
       .eq('profissional_id', prof.id);
 
+    // Média de avaliações
+    const { data: avaliacoes } = await supabase
+      .from('avaliacoes')
+      .select('nota')
+      .eq('profissional_id', prof.id);
+
+    const mediaAvaliacoes = avaliacoes && avaliacoes.length > 0
+      ? (avaliacoes.reduce((s, a) => s + (a.nota || 0), 0) / avaliacoes.length).toFixed(1)
+      : '—';
+
+    // Visualizações (coluna na tabela)
+    const { data: profView } = await supabase
+      .from('profissionais')
+      .select('visualizacoes')
+      .eq('id', prof.id)
+      .single();
+
     return new Response(JSON.stringify({
       profissional: prof,
       metricas: {
         leads_mes: leadsCount || 0,
         leads_total: leadsTotal || 0,
+        visualizacoes: profView?.visualizacoes || 0,
+        avaliacoes_media: mediaAvaliacoes,
+        avaliacoes_qtd: avaliacoes?.length || 0,
       }
     }), {
       status: 200,

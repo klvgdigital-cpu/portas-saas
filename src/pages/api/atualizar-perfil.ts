@@ -23,6 +23,32 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.json();
     const { nome, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia, foto_base64 } = body;
 
+    // Validação server-side de CPF/CNPJ (dígitos verificadores)
+    if (cpf_cnpj) {
+      const d = String(cpf_cnpj).replace(/\D/g, '');
+      const cpfOk = (c: string) => {
+        if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+        let s = 0; for (let i = 0; i < 9; i++) s += parseInt(c[i]) * (10 - i);
+        let r = (s * 10) % 11; if (r === 10) r = 0;
+        if (r !== parseInt(c[9])) return false;
+        s = 0; for (let i = 0; i < 10; i++) s += parseInt(c[i]) * (11 - i);
+        r = (s * 10) % 11; if (r === 10) r = 0;
+        return r === parseInt(c[10]);
+      };
+      const cnpjOk = (c: string) => {
+        if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+        const calc = (base: string, pesos: number[]) => {
+          const s = base.split('').reduce((acc, n, i) => acc + parseInt(n) * pesos[i], 0);
+          const r = s % 11; return r < 2 ? 0 : 11 - r;
+        };
+        return calc(c.slice(0, 12), [5,4,3,2,9,8,7,6,5,4,3,2]) === parseInt(c[12])
+            && calc(c.slice(0, 13), [6,5,4,3,2,9,8,7,6,5,4,3,2]) === parseInt(c[13]);
+      };
+      if (!(d.length === 11 ? cpfOk(d) : d.length === 14 ? cnpjOk(d) : false)) {
+        return new Response(JSON.stringify({ error: 'CPF/CNPJ inválido' }), { status: 400 });
+      }
+    }
+
     const updates: Record<string, any> = {};
     if (nome !== undefined) updates.nome = nome;
     if (whatsapp !== undefined) updates.whatsapp = whatsapp;

@@ -74,6 +74,18 @@ import Footer from '../../components/Footer.astro';
           <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-aval">0</p><p class="text-sm text-gray-500">Avaliações<br/><span class="text-xs">Média de clientes</span></p></div><span class="text-2xl">⭐</span></div></div>
         </div>
 
+        <!-- Checklist de onboarding -->
+        <div id="checklist" class="hidden card mb-8 border-l-4 border-orange-400">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-lg font-bold text-gray-900">Complete seu perfil para atrair mais clientes</h2>
+            <span id="checklist-pct" class="text-orange-600 font-bold"></span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-2 mb-4">
+            <div id="checklist-barra" class="bg-orange-500 h-2 rounded-full transition-all" style="width:0%"></div>
+          </div>
+          <ul id="checklist-itens" class="space-y-1"></ul>
+        </div>
+
         <!-- Formulário de edição de perfil -->
         <div class="card mb-8">
           <h2 class="text-xl font-bold text-gray-900 mb-6">Editar meu perfil</h2>
@@ -180,6 +192,9 @@ import Footer from '../../components/Footer.astro';
 
   function render(p: any, m: any) {
     setText('stat-leads', String(m?.leads_mes ?? 0));
+    setText('stat-views', String(m?.visualizacoes ?? 0));
+    setText('stat-aval', String(m?.avaliacoes_media ?? '—'));
+    renderChecklist(p);
     setText('nome-display', p.nome || 'Complete seu perfil');
     setText('email-display', p.email);
 
@@ -220,11 +235,92 @@ import Footer from '../../components/Footer.astro';
     (document.getElementById('f-descricao') as HTMLTextAreaElement).value = p.descricao || '';
   }
 
+  function renderChecklist(p: any) {
+    const passos = [
+      { ok: !!p.foto_url, label: 'Adicionar foto de perfil' },
+      { ok: (p.descricao || '').length >= 30, label: 'Escrever descrição completa (mín. 30 caracteres)' },
+      { ok: !!p.whatsapp && p.whatsapp.replace(/\D/g, '').length >= 10, label: 'Informar WhatsApp válido' },
+      { ok: !!p.cpf_cnpj && validarCpfCnpj(p.cpf_cnpj), label: 'Informar CPF/CNPJ válido' },
+      { ok: !!p.cidade, label: 'Informar cidade' },
+    ];
+    const feitos = passos.filter(x => x.ok).length;
+    const pct = Math.round((feitos / passos.length) * 100);
+
+    const cont = document.getElementById('checklist');
+    if (!cont) return;
+    if (pct === 100) { cont.classList.add('hidden'); return; }
+    cont.classList.remove('hidden');
+    setText('checklist-pct', pct + '%');
+    const barra = document.getElementById('checklist-barra');
+    if (barra) (barra as HTMLElement).style.width = pct + '%';
+    const lista = document.getElementById('checklist-itens');
+    if (lista) {
+      lista.innerHTML = passos.map(x =>
+        '<li class="flex items-center gap-2 text-sm ' + (x.ok ? 'text-green-600 line-through' : 'text-gray-600') + '">' +
+        (x.ok ? '✅' : '⭕') + ' ' + x.label + '</li>'
+      ).join('');
+    }
+  }
+
+  function validarCpfCnpj(v: string): boolean {
+    const d = (v || '').replace(/\D/g, '');
+    if (d.length === 11) return validarCPF(d);
+    if (d.length === 14) return validarCNPJ(d);
+    return false;
+  }
+  function validarCPF(cpf: string): boolean {
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    let s = 0;
+    for (let i = 0; i < 9; i++) s += parseInt(cpf[i]) * (10 - i);
+    let r = (s * 10) % 11; if (r === 10) r = 0;
+    if (r !== parseInt(cpf[9])) return false;
+    s = 0;
+    for (let i = 0; i < 10; i++) s += parseInt(cpf[i]) * (11 - i);
+    r = (s * 10) % 11; if (r === 10) r = 0;
+    return r === parseInt(cpf[10]);
+  }
+  function validarCNPJ(cnpj: string): boolean {
+    if (/^(\d)\1{13}$/.test(cnpj)) return false;
+    const calc = (base: string, pesos: number[]) => {
+      const s = base.split('').reduce((acc, n, i) => acc + parseInt(n) * pesos[i], 0);
+      const r = s % 11;
+      return r < 2 ? 0 : 11 - r;
+    };
+    const d1 = calc(cnpj.slice(0, 12), [5,4,3,2,9,8,7,6,5,4,3,2]);
+    const d2 = calc(cnpj.slice(0, 13), [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+    return d1 === parseInt(cnpj[12]) && d2 === parseInt(cnpj[13]);
+  }
+
+  // Máscara de CPF/CNPJ e WhatsApp
+  document.getElementById('f-cpf')?.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement;
+    let d = el.value.replace(/\D/g, '').slice(0, 14);
+    if (d.length <= 11) {
+      el.value = d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      el.value = d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+  });
+  document.getElementById('f-whatsapp')?.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement;
+    let d = el.value.replace(/\D/g, '').slice(0, 11);
+    if (d.length > 6) el.value = '(' + d.slice(0,2) + ') ' + d.slice(2, d.length - 4) + '-' + d.slice(-4);
+    else if (d.length > 2) el.value = '(' + d.slice(0,2) + ') ' + d.slice(2);
+    else el.value = d;
+  });
+
   // Salvar perfil
   document.getElementById('form-perfil')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-salvar') as HTMLButtonElement;
     btn.disabled = true; btn.textContent = 'Salvando...';
+
+    const cpfVal = (document.getElementById('f-cpf') as HTMLInputElement).value;
+    if (cpfVal && !validarCpfCnpj(cpfVal)) {
+      msgErr('CPF/CNPJ inválido. Verifique os números digitados.');
+      btn.disabled = false; btn.textContent = 'Salvar alterações';
+      return;
+    }
 
     const body = {
       nome: (document.getElementById('f-nome') as HTMLInputElement).value,
@@ -284,11 +380,18 @@ import Footer from '../../components/Footer.astro';
 
   // Assinar plano
   async function assinar(plano: string) {
-    if (!profissional?.cpf_cnpj) {
+    if (!profissional?.cpf_cnpj || !validarCpfCnpj(profissional.cpf_cnpj)) {
+      msgErr('Preencha um CPF/CNPJ válido no formulário abaixo antes de assinar.');
+      document.getElementById('f-cpf')?.focus();
+      return;
+    }
+    if (false) {
       msgErr('Preencha seu CPF/CNPJ no formulário abaixo antes de assinar.');
       document.getElementById('f-cpf')?.focus();
       return;
     }
+    document.querySelectorAll('#banner-assinar button').forEach(b => { (b as HTMLButtonElement).disabled = true; (b as HTMLButtonElement).style.opacity = '0.6'; });
+    msgOk('Gerando sua fatura, aguarde...');
     try {
       const res = await fetch('/api/assinar', {
         method: 'POST',
@@ -300,6 +403,7 @@ import Footer from '../../components/Footer.astro';
       window.location.href = data.url;
     } catch (err: any) {
       msgErr(err.message || 'Erro ao iniciar assinatura');
+      document.querySelectorAll('#banner-assinar button').forEach(b => { (b as HTMLButtonElement).disabled = false; (b as HTMLButtonElement).style.opacity = '1'; });
     }
   }
   (window as any).assinar = assinar;

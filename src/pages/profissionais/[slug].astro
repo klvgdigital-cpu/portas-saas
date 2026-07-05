@@ -14,6 +14,16 @@ try {
   return Astro.redirect('/profissionais');
 }
 
+// Rastrear visualização (fire-and-forget, não bloqueia a página)
+try {
+  const { createClient } = await import('@supabase/supabase-js');
+  const sbAdmin = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  sbAdmin.rpc('increment_visualizacoes', { prof_id: profissional.id }).then(() => {});
+} catch {}
+
 const mediaNotas = avaliacoes.length > 0
   ? (avaliacoes.reduce((s, a) => s + a.nota, 0) / avaliacoes.length).toFixed(1)
   : null;
