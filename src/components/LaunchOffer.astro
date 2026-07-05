@@ -1,0 +1,58 @@
+---
+// Popup + barra de oferta de lançamento
+// Popup aparece 1x por visitante (localStorage), após 5s
+// Barra fixa no topo como reforço permanente
+---
+<!-- Barra fixa de lançamento -->
+<div id="launch-bar" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center text-sm py-2 px-4">
+  🚀 <strong>Oferta de lançamento:</strong> 10 dias grátis para profissionais de porta de enrolar —
+  <a href="/cadastro" class="underline font-bold hover:text-orange-100">Garanta sua vaga</a>
+</div>
+
+<!-- Popup de lançamento -->
+<div id="launch-popup" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div id="launch-overlay" class="absolute inset-0 bg-black/60"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-[fadeIn_.3s_ease]">
+    <button id="launch-close" class="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Fechar">×</button>
+    <div class="text-4xl mb-3">🚀</div>
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-2">OFERTA DE LANÇAMENTO</h2>
+    <p class="text-gray-600 mb-1">Profissional de porta de enrolar:</p>
+    <p class="text-lg font-bold text-orange-600 mb-4">10 dias grátis + posição de destaque nas buscas da sua cidade</p>
+    <p class="text-sm text-gray-500 mb-6">Vagas limitadas para os primeiros cadastrados!</p>
+    <a href="/cadastro" class="btn-primary w-full block text-center mb-2">Quero garantir minha vaga</a>
+    <button id="launch-later" class="text-sm text-gray-400 hover:text-gray-600 underline">Agora não</button>
+  </div>
+</div>
+
+<style>
+  @keyframes fadeIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+</style>
+
+<script>
+  (() => {
+    const KEY = 'pf_launch_popup_v1';
+    const popup = document.getElementById('launch-popup');
+    const fechar = () => {
+      popup?.classList.add('hidden');
+      try { localStorage.setItem(KEY, '1'); } catch {}
+    };
+
+    try {
+      // Não mostrar no painel/login/cadastro (usuário já está no funil)
+      const rota = window.location.pathname;
+      const rotasExcluidas = ['/painel', '/login', '/cadastro', '/nova-senha'];
+      if (rotasExcluidas.some(r => rota.startsWith(r))) return;
+
+      if (localStorage.getItem(KEY)) return;
+
+      setTimeout(() => {
+        popup?.classList.remove('hidden');
+      }, 5000);
+    } catch {}
+
+    document.getElementById('launch-close')?.addEventListener('click', fechar);
+    document.getElementById('launch-later')?.addEventListener('click', fechar);
+    document.getElementById('launch-overlay')?.addEventListener('click', fechar);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+  })();
+</script>

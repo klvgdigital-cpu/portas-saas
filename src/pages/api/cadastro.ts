@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 3. Calcular trial de 7 dias
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 10); // oferta de lancamento
 
     // 4. Salvar na tabela profissionais
     const slug = (nome || email).toLowerCase()
@@ -92,7 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
       await resend.emails.send({
         from: 'PortaFácil <contato@portafacil.net>',
         to: email,
-        subject: '🎉 Seu perfil está ativo! 7 dias grátis na PortaFácil',
+        subject: '🎉 Seu perfil está ativo! 10 dias grátis na PortaFácil',
         html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"></head>
@@ -100,7 +100,7 @@ export const POST: APIRoute = async ({ request }) => {
   <div style="max-width:560px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)">
     <div style="background:#1e3a5f;padding:24px 32px">
       <h1 style="color:white;margin:0;font-size:20px">🎉 Bem-vindo à PortaFácil!</h1>
-      <p style="color:#b0c4de;margin:6px 0 0;font-size:14px">Seu perfil está ativo — 7 dias grátis começando agora</p>
+      <p style="color:#b0c4de;margin:6px 0 0;font-size:14px">Seu perfil está ativo — 10 dias grátis começando agora</p>
     </div>
     <div style="padding:32px">
       <p style="color:#444;margin:0 0 20px">Olá, <strong>${nome}</strong>! Seu cadastro foi criado com sucesso.</p>
