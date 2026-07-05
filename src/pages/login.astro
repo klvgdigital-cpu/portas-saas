@@ -83,15 +83,15 @@ import Footer from '../components/Footer.astro';
     btnLogin.textContent = 'Entrando...';
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }),
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
       });
 
-      const json = await res.json();
-
-      if (json.error) {
+      if (error || !data.session) {
         showErro('E-mail ou senha incorretos. Verifique seus dados.');
         btnLogin.disabled = false;
         btnLogin.textContent = 'Entrar';
@@ -99,7 +99,7 @@ import Footer from '../components/Footer.astro';
       }
 
       showSucesso('Login realizado! Redirecionando...');
-      setTimeout(() => { window.location.href = '/painel'; }, 1000);
+      setTimeout(() => { window.location.href = '/painel'; }, 500);
 
     } catch (err) {
       showErro('Erro ao conectar. Tente novamente.');
