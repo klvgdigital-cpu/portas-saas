@@ -95,9 +95,26 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // Cancelar assinatura anterior se existir (upgrade/downgrade)
+    // Se já existe assinatura, verificar cobranças pendentes
     if (prof.asaas_subscription_id) {
       try {
+        const oldPayments = await asaasFetch(`/subscriptions/${prof.asaas_subscription_id}/payments`);
+        const pendentes = (oldPayments?.data || []).filter((p: any) => p.status === 'PENDING' || p.status === 'OVERDUE');
+
+        // Mesmo plano + fatura pendente → reaproveitar em vez de duplicar
+        const valorPlano = plano === 'pro' ? 149.0 : 79.0;
+        const mesmaFatura = pendentes.find((p: any) => Number(p.value) === valorPlano);
+        if (mesmaFatura?.invoiceUrl) {
+          return new Response(JSON.stringify({ url: mesmaFatura.invoiceUrl }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Plano diferente → excluir cobranças pendentes antigas para não duplicar
+        for (const p of pendentes) {
+          try { await asaasFetch(`/payments/${p.id}`, { method: 'DELETE' }); } catch {}
+        }
         await asaasFetch(`/subscriptions/${prof.asaas_subscription_id}`, { method: 'DELETE' });
       } catch (e) {
         console.log('Assinatura anterior já removida ou inexistente');
