@@ -116,6 +116,10 @@ const navLinks = [
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
+      // Ocultar oferta de lançamento para quem já tem conta
+      document.getElementById('launch-bar')?.classList.add('hidden');
+      document.getElementById('launch-popup')?.classList.add('hidden');
+
       // Desktop
       document.getElementById('header-entrar')?.classList.add('hidden');
       document.getElementById('header-cadastrar')?.classList.add('hidden');

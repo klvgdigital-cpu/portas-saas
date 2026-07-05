@@ -230,3 +230,18 @@ const estados = [
     }
   });
 </script>
+
+<script>
+  // redirect-se-logado: usuário autenticado não deve ver esta página
+  (async () => {
+    try {
+      const u = document.querySelector('meta[name="sb-url"]')?.getAttribute('content') || '';
+      const k = document.querySelector('meta[name="sb-key"]')?.getAttribute('content') || '';
+      if (!u || !k) return;
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient(u, k);
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) window.location.replace('/painel');
+    } catch {}
+  })();
+</script>
