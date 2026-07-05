@@ -1,6 +1,23 @@
 import type { APIRoute } from 'astro';
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+
+const ASAAS_BASE = 'https://api.asaas.com/v3';
+
+async function asaasFetch(path: string, options: RequestInit = {}) {
+  const res = await fetch(`${ASAAS_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'access_token': import.meta.env.ASAAS_API_KEY,
+      ...(options.headers || {}),
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.errors?.[0]?.description || `Asaas error ${res.status}`);
+  }
+  return data;
+}
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -19,10 +36,9 @@ export const POST: APIRoute = async ({ request }) => {
       import.meta.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    // Buscar profissional
     const { data: prof, error: fetchError } = await supabase
       .from('profissionais')
-      .select('id, nome, slug')
+      .select('id, nome, slug, cpf_cnpj, whatsapp, asaas_customer_id, asaas_subscription_id')
       .eq('email', email)
       .single();
 
@@ -33,23 +49,77 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
-    const PRICE_PRO = 'price_1TbWBp10Lgf22AVyeiuNmkU6';
-    const PRICE_BASICO = 'price_1TbWBA10Lgf22AVyNNU3mgK9';
-    const priceId = plano === 'pro' ? PRICE_PRO : PRICE_BASICO;
-    const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://www.portafacil.net';
+    if (!prof.cpf_cnpj) {
+      return new Response(JSON.stringify({ error: 'CPF/CNPJ não cadastrado. Atualize seu perfil.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
-      customer_email: email,
-      metadata: { nome: prof.nome || '', plano, slug: prof.slug },
-      success_url: `${siteUrl}/painel?assinatura=sucesso`,
-      cancel_url: `${siteUrl}/painel`,
+    // Reutilizar ou criar cliente Asaas
+    let asaasCustomerId = prof.asaas_customer_id;
+    if (!asaasCustomerId) {
+      const existing = await asaasFetch(`/customers?email=${encodeURIComponent(email)}`);
+      if (existing?.data?.length > 0) {
+        asaasCustomerId = existing.data[0].id;
+      } else {
+        const customer = await asaasFetch('/customers', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: prof.nome || email,
+            email,
+            cpfCnpj: prof.cpf_cnpj.replace(/\D/g, ''),
+            mobilePhone: (prof.whatsapp || '').replace(/\D/g, ''),
+          }),
+        });
+        asaasCustomerId = customer.id;
+      }
+    }
+
+    // Cancelar assinatura anterior se existir (upgrade/downgrade)
+    if (prof.asaas_subscription_id) {
+      try {
+        await asaasFetch(`/subscriptions/${prof.asaas_subscription_id}`, { method: 'DELETE' });
+      } catch (e) {
+        console.log('Assinatura anterior já removida ou inexistente');
+      }
+    }
+
+    // Criar nova assinatura — primeira cobrança vence amanhã
+    const valor = plano === 'pro' ? 149.0 : 79.0;
+    const nextDueDate = new Date();
+    nextDueDate.setDate(nextDueDate.getDate() + 1);
+    const dueDateStr = nextDueDate.toISOString().split('T')[0];
+
+    const subscription = await asaasFetch('/subscriptions', {
+      method: 'POST',
+      body: JSON.stringify({
+        customer: asaasCustomerId,
+        billingType: 'UNDEFINED',
+        nextDueDate: dueDateStr,
+        value: valor,
+        cycle: 'MONTHLY',
+        description: plano === 'pro' ? 'Plano Pro — PortaFácil' : 'Plano Básico — PortaFácil',
+      }),
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    // Buscar a primeira cobrança para redirecionar ao pagamento
+    const payments = await asaasFetch(`/subscriptions/${subscription.id}/payments`);
+    const firstPayment = payments?.data?.[0];
+    const invoiceUrl = firstPayment?.invoiceUrl;
+
+    // Atualizar registro
+    await supabase
+      .from('profissionais')
+      .update({
+        plano: plano === 'pro' ? 'pro' : 'basico',
+        asaas_customer_id: asaasCustomerId,
+        asaas_subscription_id: subscription.id,
+      })
+      .eq('id', prof.id);
+
+    const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://www.portafacil.net';
+    return new Response(JSON.stringify({ url: invoiceUrl || `${siteUrl}/painel` }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

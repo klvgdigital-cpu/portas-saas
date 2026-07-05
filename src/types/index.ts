@@ -50,7 +50,7 @@ export interface Plano {
   descricao: string;
   features: string[];
   destaque: boolean;
-  stripe_price_id: string;
+  gateway_price_id: string;
 }
 
 export const PLANOS: Plano[] = [
@@ -67,7 +67,7 @@ export const PLANOS: Plano[] = [
       'Avaliações de clientes',
     ],
     destaque: false,
-    stripe_price_id: 'price_basico_mensal',
+    gateway_price_id: 'price_basico_mensal',
   },
   {
     id: 'pro',
@@ -83,7 +83,7 @@ export const PLANOS: Plano[] = [
       'Painel de métricas avançado',
     ],
     destaque: true,
-    stripe_price_id: 'price_pro_mensal',
+    gateway_price_id: 'price_pro_mensal',
   },
 ];
 

@@ -86,14 +86,14 @@ try {
   // Silently fail — painel mostra estado genérico
 }
 
-const temPlano = profissional?.stripe_subscription_id || profissional?.plano === 'pro' || (profissional?.plano === 'basico' && profissional?.status === 'ativo');
+const temPlano = profissional?.asaas_subscription_id || profissional?.plano === 'pro' || (profissional?.plano === 'basico' && profissional?.status === 'ativo');
 
 // Calcular trial
 const trialEndsAt = profissional?.trial_ends_at ? new Date(profissional.trial_ends_at) : null;
 const hoje = new Date();
-const emTrial = trialEndsAt && trialEndsAt > hoje && !profissional?.stripe_subscription_id;
+const emTrial = trialEndsAt && trialEndsAt > hoje && !profissional?.asaas_subscription_id;
 const diasRestantesTrial = emTrial ? Math.ceil((trialEndsAt.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-const trialExpirado = trialEndsAt && trialEndsAt <= hoje && !profissional?.stripe_subscription_id;
+const trialExpirado = trialEndsAt && trialEndsAt <= hoje && !profissional?.asaas_subscription_id;
 ---
 <BaseLayout title="Painel do Profissional — PortaFácil">
   <Header />
