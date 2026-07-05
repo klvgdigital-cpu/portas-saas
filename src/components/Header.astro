@@ -31,11 +31,16 @@ const navLinks = [
       </nav>
 
       <!-- CTAs desktop -->
-      <div class="hidden md:flex items-center gap-3">
-        <a href="/login" class="btn-outline">Entrar</a>
-        <a href="/cadastro" class="btn-primary text-sm px-4 py-2">
+      <div class="hidden md:flex items-center gap-3" id="header-ctas">
+        <a href="/login" class="btn-outline" id="header-entrar">Entrar</a>
+        <a href="/cadastro" class="btn-primary text-sm px-4 py-2" id="header-cadastrar">
           Cadastrar-se
         </a>
+        <a href="/painel" class="hidden items-center gap-2 font-medium text-sm text-gray-700 hover:text-primary-600" id="header-painel">
+          <span class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold text-xs flex items-center justify-center overflow-hidden" id="header-avatar">--</span>
+          Meu Painel
+        </a>
+        <button class="hidden text-sm text-gray-400 hover:text-gray-600" id="header-sair">Sair</button>
       </div>
 
       <!-- Hamburger mobile -->
@@ -63,9 +68,11 @@ const navLinks = [
             {link.label}
           </a>
         ))}
-        <div class="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-2">
-          <a href="/login" class="btn-outline w-full text-center">Entrar</a>
-          <a href="/cadastro" class="btn-primary w-full text-center">Cadastrar-se</a>
+        <div class="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-2" id="mobile-ctas">
+          <a href="/login" class="btn-outline w-full text-center" id="mobile-entrar">Entrar</a>
+          <a href="/cadastro" class="btn-primary w-full text-center" id="mobile-cadastrar">Cadastrar-se</a>
+          <a href="/painel" class="hidden btn-primary w-full text-center" id="mobile-painel">Meu Painel</a>
+          <button class="hidden btn-outline w-full text-center" id="mobile-sair">Sair</button>
         </div>
       </nav>
     </div>
@@ -94,4 +101,48 @@ const navLinks = [
       toggle?.setAttribute('aria-expanded', 'false');
     }
   });
+
+  // Estado de autenticação — troca Entrar/Cadastrar por Meu Painel/Sair
+  (async () => {
+    try {
+      const sbUrl = document.querySelector('meta[name="sb-url"]')?.getAttribute('content') || '';
+      const sbKey = document.querySelector('meta[name="sb-key"]')?.getAttribute('content') || '';
+      if (!sbUrl || !sbKey) return;
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(sbUrl, sbKey);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      // Desktop
+      document.getElementById('header-entrar')?.classList.add('hidden');
+      document.getElementById('header-cadastrar')?.classList.add('hidden');
+      const painelLink = document.getElementById('header-painel');
+      painelLink?.classList.remove('hidden');
+      painelLink?.classList.add('flex');
+      document.getElementById('header-sair')?.classList.remove('hidden');
+
+      // Avatar com iniciais ou foto
+      const nome = session.user.user_metadata?.nome || session.user.email || '';
+      const iniciais = nome.split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase();
+      const avatar = document.getElementById('header-avatar');
+      if (avatar) avatar.textContent = iniciais;
+
+      // Mobile
+      document.getElementById('mobile-entrar')?.classList.add('hidden');
+      document.getElementById('mobile-cadastrar')?.classList.add('hidden');
+      document.getElementById('mobile-painel')?.classList.remove('hidden');
+      document.getElementById('mobile-sair')?.classList.remove('hidden');
+
+      // Sair
+      const sair = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/';
+      };
+      document.getElementById('header-sair')?.addEventListener('click', sair);
+      document.getElementById('mobile-sair')?.addEventListener('click', sair);
+    } catch (e) {
+      // Header permanece no estado padrão
+    }
+  })();
 </script>
