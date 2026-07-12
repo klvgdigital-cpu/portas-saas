@@ -20,29 +20,6 @@ export const POST: APIRoute = async ({ request }) => {
     );
 
     // Salvar lead
-    const { data: lead, error: leadError } = await supabase
-      .from('leads')
-      .insert({
-        profissional_id,
-        nome_cliente: nome,
-        telefone_cliente: telefone,
-        tipo_servico: tipo_servico || 'Não informado',
-        descricao: descricao || '',
-      ip,
-        cidade: cidade || '',
-        status: 'novo',
-      })
-      .select()
-      .single();
-
-    if (leadError) {
-      console.error('Erro ao salvar lead:', leadError);
-      return new Response(JSON.stringify({ error: 'Erro ao salvar solicitação' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     // --- Proteções anti-raspagem ---
     // 1) Honeypot: campo invisível preenchido = robô. Finge sucesso, não salva nada.
     if (body.site) {
@@ -63,6 +40,30 @@ export const POST: APIRoute = async ({ request }) => {
     if ((leadsRecentes || 0) >= 3) {
       return new Response(JSON.stringify({ error: 'Muitas solicitações. Tente novamente mais tarde.' }), {
         status: 429, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+
+    const { data: lead, error: leadError } = await supabase
+      .from('leads')
+      .insert({
+        profissional_id,
+        nome_cliente: nome,
+        telefone_cliente: telefone,
+        tipo_servico: tipo_servico || 'Não informado',
+        descricao: descricao || '',
+      ip,
+        cidade: cidade || '',
+        status: 'novo',
+      })
+      .select()
+      .single();
+
+    if (leadError) {
+      console.error('Erro ao salvar lead:', leadError);
+      return new Response(JSON.stringify({ error: 'Erro ao salvar solicitação' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
