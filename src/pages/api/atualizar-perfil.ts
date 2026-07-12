@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const { nome, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia, foto_base64 } = body;
+    const { nome, whatsapp, cpf_cnpj, descricao, cidade, estado, regioes, tipos_porta, anos_experiencia, foto_base64 } = body;
 
     // Validação server-side de CPF/CNPJ (dígitos verificadores)
     if (cpf_cnpj) {
@@ -57,6 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (cidade !== undefined) updates.cidade = cidade;
     if (estado !== undefined) updates.estado = estado;
     if (tipos_porta !== undefined) updates.tipos_porta = tipos_porta;
+    if (regioes !== undefined) updates.regioes = regioes;
     if (anos_experiencia !== undefined) updates.anos_experiencia = Number(anos_experiencia) || 1;
 
     // Upload de foto (base64) para o Supabase Storage

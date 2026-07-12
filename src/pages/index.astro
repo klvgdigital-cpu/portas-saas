@@ -64,16 +64,25 @@ const depoimentos = [
 
       <!-- Search -->
       <form action="/profissionais" method="get" class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
-        <input
-          type="text"
-          name="cidade"
-          placeholder="Digite sua cidade..."
+        <select
+          name="regiao"
           class="flex-1 input-field bg-white text-gray-900 text-base"
-          aria-label="Buscar por cidade"
-        />
+          aria-label="Escolha sua região"
+        >
+          <option value="">Todas as regiões</option>
+          <option value="Zona Norte">Zona Norte (capital)</option>
+          <option value="Zona Sul">Zona Sul (capital)</option>
+          <option value="Zona Leste">Zona Leste (capital)</option>
+          <option value="Zona Oeste">Zona Oeste (capital)</option>
+          <option value="Centro">Centro (capital)</option>
+          <option value="ABC">ABC</option>
+          <option value="Guarulhos">Guarulhos</option>
+          <option value="Osasco">Osasco e região</option>
+          <option value="Outras">Outras (Grande SP)</option>
+        </select>
         <button type="submit" class="btn-primary whitespace-nowrap">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Buscar
+          Ver profissionais
         </button>
       </form>
       <p class="text-primary-200 text-sm mt-3">Profissionais verificados na capital e Grande São Paulo</p>

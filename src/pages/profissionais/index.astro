@@ -5,18 +5,29 @@ import Footer from '../../components/Footer.astro';
 import ProfissionalCard from '../../components/ProfissionalCard.astro';
 import { getProfissionais } from '../../lib/supabase';
 
-const { cidade, estado, tipos_porta } = Astro.url.searchParams
+const { regiao, tipos_porta } = Astro.url.searchParams
   ? Object.fromEntries(Astro.url.searchParams)
   : {};
 
 let profissionais = [];
 try {
-  profissionais = await getProfissionais({ cidade, estado, tipos_porta });
+  // Busca todos de SP; filtro de região é aplicado sobre o campo regioes/cidade
+  profissionais = await getProfissionais({ tipos_porta });
+  if (regiao) {
+    const r = regiao.toLowerCase();
+    profissionais = profissionais.filter((p: any) =>
+      (p.regioes || '').toLowerCase().includes(r) ||
+      (p.cidade || '').toLowerCase().includes(r)
+    );
+  }
 } catch {
   profissionais = [];
 }
 
-const estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+const regioes = [
+  'Zona Norte', 'Zona Sul', 'Zona Leste', 'Zona Oeste', 'Centro',
+  'ABC', 'Guarulhos', 'Osasco', 'Outras (Grande SP)'
+];
 ---
 <BaseLayout
   title="Encontre Especialistas em Porta de Enrolar — PortaFácil"
@@ -30,21 +41,13 @@ const estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG
     <section class="bg-gray-50 border-b border-gray-200 py-6">
       <div class="container">
         <h1 class="text-2xl font-bold text-gray-900 mb-5">
-          {cidade ? `Especialistas em ${cidade}` : 'Todos os especialistas'}
+          {regiao ? `Especialistas — ${regiao}` : 'Especialistas em São Paulo e Grande SP'}
         </h1>
         <form method="get" class="flex flex-wrap gap-3">
-          <input
-            type="text"
-            name="cidade"
-            placeholder="Cidade"
-            value={cidade ?? ''}
-            class="input-field w-full sm:w-48"
-            aria-label="Filtrar por cidade"
-          />
-          <select name="estado" class="input-field w-full sm:w-40" aria-label="Filtrar por estado">
-            <option value="">Todos os estados</option>
-            {estados.map(uf => (
-              <option value={uf} selected={estado === uf}>{uf}</option>
+          <select name="regiao" class="input-field w-full sm:w-56" aria-label="Filtrar por região">
+            <option value="">Todas as regiões</option>
+            {regioes.map(r => (
+              <option value={r} selected={regiao === r}>{r}</option>
             ))}
           </select>
           <select name="tipos_porta" class="input-field w-full sm:w-48" aria-label="Filtrar por tipo de porta">
@@ -53,7 +56,7 @@ const estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG
             <option value="manual" selected={tipos_porta === 'manual'}>Manual</option>
           </select>
           <button type="submit" class="btn-primary">Filtrar</button>
-          {(cidade || estado || tipos_porta) && (
+          {(regiao || tipos_porta) && (
             <a href="/profissionais" class="btn-outline">Limpar</a>
           )}
         </form>

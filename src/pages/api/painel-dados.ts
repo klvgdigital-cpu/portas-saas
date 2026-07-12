@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { data: prof, error } = await supabase
       .from('profissionais')
-      .select('id, nome, email, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia, plano, status, trial_ends_at, foto_url, slug, asaas_subscription_id')
+      .select('id, nome, email, whatsapp, cpf_cnpj, descricao, cidade, estado, regioes, tipos_porta, anos_experiencia, plano, status, trial_ends_at, foto_url, slug, asaas_subscription_id')
       .eq('email', user.email)
       .single();
 

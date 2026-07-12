@@ -125,6 +125,16 @@ import Footer from '../../components/Footer.astro';
               </select>
             </div>
             <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Regiões que atende</label>
+              <div id="f-regioes" class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                {['Zona Norte','Zona Sul','Zona Leste','Zona Oeste','Centro','ABC','Guarulhos','Osasco','Outras (Grande SP)'].map(r => (
+                  <label class="flex items-center gap-2 text-gray-700">
+                    <input type="checkbox" name="regiao-opt" value={r} class="rounded border-gray-300" /> {r}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Descrição dos seus serviços</label>
               <textarea id="f-descricao" rows="4" class="input-field" placeholder="Conte sua experiência, especialidades, regiões que atende..."></textarea>
             </div>
@@ -233,6 +243,10 @@ import Footer from '../../components/Footer.astro';
     (document.getElementById('f-estado') as HTMLSelectElement).value = p.estado || 'SP';
     (document.getElementById('f-tipos') as HTMLSelectElement).value = p.tipos_porta || 'ambas';
     (document.getElementById('f-descricao') as HTMLTextAreaElement).value = p.descricao || '';
+    const regioesSel = (p.regioes || '').split(',').map((x: string) => x.trim());
+    document.querySelectorAll('input[name="regiao-opt"]').forEach((cb) => {
+      (cb as HTMLInputElement).checked = regioesSel.includes((cb as HTMLInputElement).value);
+    });
   }
 
   function renderChecklist(p: any) {
@@ -330,6 +344,7 @@ import Footer from '../../components/Footer.astro';
       cidade: (document.getElementById('f-cidade') as HTMLInputElement).value,
       estado: (document.getElementById('f-estado') as HTMLSelectElement).value,
       tipos_porta: (document.getElementById('f-tipos') as HTMLSelectElement).value,
+      regioes: Array.from(document.querySelectorAll('input[name="regiao-opt"]:checked')).map(cb => (cb as HTMLInputElement).value).join(', '),
       descricao: (document.getElementById('f-descricao') as HTMLTextAreaElement).value,
     };
 
