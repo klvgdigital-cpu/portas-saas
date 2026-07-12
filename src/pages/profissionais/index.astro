@@ -79,7 +79,7 @@ const regioes = [
           <>
             <p class="text-sm text-gray-500 mb-6">
               {profissionais.length} {profissionais.length !== 1 ? 'profissionais' : 'profissional'} encontrado{profissionais.length !== 1 ? 's' : ''}
-              {cidade && ` em ${cidade}`}
+              {regiao && ` — ${regiao}`}
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {profissionais.map(p => <ProfissionalCard profissional={p} />)}
