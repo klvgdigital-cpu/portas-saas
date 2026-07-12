@@ -109,20 +109,25 @@ const estados = [
 
           <!-- Localização -->
           <fieldset class="space-y-4">
-            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Localização</legend>
+            <legend class="font-semibold text-gray-900 text-sm uppercase tracking-wide pb-2 border-b border-gray-100 w-full">Regiões que você atende *</legend>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="cidade">Cidade principal *</label>
                 <input id="cidade" type="text" name="cidade" required class="input-field" placeholder="São Paulo" />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="estado">Estado *</label>
-                <select id="estado" name="estado" class="input-field">
-                  {estados.map(uf => <option value={uf} selected={uf === 'SP'}>{uf}</option>)}
-                </select>
-              </div>
             </div>
+
+            <p class="text-sm text-gray-500">Marque todas as regiões onde você atende — é assim que os clientes vão te encontrar:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm" id="regioes-grupo">
+              {['Zona Norte (SP capital)','Zona Sul (SP capital)','Zona Leste (SP capital)','Zona Oeste (SP capital)','Centro (SP capital)','ABC','Guarulhos','Osasco e região','Outras cidades da Grande SP','Atendo também fora da Grande SP'].map(r => (
+                <label class="flex items-center gap-2 text-gray-700 border border-gray-200 rounded-lg px-3 py-2 hover:border-orange-300 cursor-pointer">
+                  <input type="checkbox" name="regiao-opt" value={r} class="w-4 h-4 accent-primary-600" /> {r}
+                </label>
+              ))}
+            </div>
+            <p id="regioes-erro" class="hidden text-sm text-red-600">Selecione pelo menos uma região.</p>
+            <input type="hidden" name="estado" value="SP" />
           </fieldset>
 
           <!-- Termos -->
@@ -197,6 +202,15 @@ const estados = [
     const data = new FormData(form);
 
     try {
+      const regioesMarcadas = data.getAll('regiao-opt');
+      const erroRegioes = document.getElementById('regioes-erro');
+      if (regioesMarcadas.length === 0) {
+        erroRegioes?.classList.remove('hidden');
+        document.getElementById('regioes-grupo')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        throw new Error('Selecione pelo menos uma região que você atende.');
+      }
+      erroRegioes?.classList.add('hidden');
+
       const res = await fetch('/api/cadastro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,6 +223,7 @@ const estados = [
           descricao: data.get('descricao'),
           cidade: data.get('cidade'),
           estado: data.get('estado'),
+          regioes: data.getAll('regiao-opt').join(', '),
           tipos_porta: data.get('tipos_porta'),
           anos_experiencia: data.get('anos_experiencia'),
         }),

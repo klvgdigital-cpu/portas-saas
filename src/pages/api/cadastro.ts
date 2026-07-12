@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { email, nome, senha, whatsapp, cpf_cnpj, descricao, cidade, estado, tipos_porta, anos_experiencia } = body;
+    const { email, nome, senha, whatsapp, cpf_cnpj, descricao, cidade, estado, regioes, tipos_porta, anos_experiencia } = body;
 
     if (!email || !nome || !senha) {
       return new Response(JSON.stringify({ error: 'Nome, e-mail e senha são obrigatórios' }), {
@@ -67,6 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
       descricao: descricao || '',
       cidade: cidade || '',
       estado: estado || 'SP',
+      regioes: regioes || '',
       tipos_porta: tipos_porta || 'ambas',
       anos_experiencia: Number(anos_experiencia) || 1,
       plano: 'basico',
