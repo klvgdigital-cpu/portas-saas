@@ -269,7 +269,8 @@ const localBusinessJsonLd = {
       if (json.success) {
         btn.textContent = json.whatsapp_url ? '✓ Enviado! Abrindo WhatsApp...' : '✓ Solicitação enviada!';
         if (json.whatsapp_url) {
-          setTimeout(() => { window.open(json.whatsapp_url, '_blank'); }, 800);
+          // Redireciona na mesma aba: imune a bloqueador de popup
+          setTimeout(() => { window.location.href = json.whatsapp_url; }, 600);
         }
         btn.classList.remove('btn-primary');
         btn.classList.add('bg-green-600', 'text-white', 'w-full', 'py-3', 'rounded-lg', 'font-semibold');
