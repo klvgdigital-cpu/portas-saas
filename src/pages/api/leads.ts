@@ -102,7 +102,7 @@ export const POST: APIRoute = async ({ request }) => {
                       <tr><td style="padding:6px 0;color:#888;font-size:13px;width:120px">Nome</td><td style="padding:6px 0;color:#222;font-size:13px;font-weight:500">${nome}</td></tr>
                       <tr><td style="padding:6px 0;color:#888;font-size:13px">Telefone</td><td style="padding:6px 0;color:#222;font-size:13px;font-weight:500">${telefone}</td></tr>
                       <tr><td style="padding:6px 0;color:#888;font-size:13px">Serviço</td><td style="padding:6px 0;color:#222;font-size:13px;font-weight:500">${tipo_servico || 'Não informado'}</td></tr>
-                      <tr><td style="padding:6px 0;color:#888;font-size:13px">Cidade</td><td style="padding:6px 0;color:#222;font-size:13px;font-weight:500">${cidade || 'Não informada'}</td></tr>
+                      <tr><td style="padding:6px 0;color:#888;font-size:13px">Região</td><td style="padding:6px 0;color:#222;font-size:13px;font-weight:500">${cidade || 'Não informada'}</td></tr>
                       ${descricao ? `<tr><td style="padding:6px 0;color:#888;font-size:13px;vertical-align:top">Descrição</td><td style="padding:6px 0;color:#222;font-size:13px">${descricao}</td></tr>` : ''}
                     </table>
                   </div>

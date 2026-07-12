@@ -194,6 +194,21 @@ const localBusinessJsonLd = {
                 <input type="tel" name="telefone" required class="input-field bg-white text-sm" placeholder="(11) 99999-0000" />
               </div>
               <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Sua região</label>
+                <select name="regiao" required class="input-field bg-white text-sm">
+                  <option value="" disabled selected>Selecione sua região</option>
+                  <option>Zona Norte (SP capital)</option>
+                  <option>Zona Sul (SP capital)</option>
+                  <option>Zona Leste (SP capital)</option>
+                  <option>Zona Oeste (SP capital)</option>
+                  <option>Centro (SP capital)</option>
+                  <option>ABC</option>
+                  <option>Guarulhos</option>
+                  <option>Osasco e região</option>
+                  <option>Outra cidade da Grande SP</option>
+                </select>
+              </div>
+              <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Tipo de serviço</label>
                 <select name="tipo_servico" class="input-field bg-white text-sm">
                   <option>Manutenção / reparo</option>
@@ -259,10 +274,10 @@ const localBusinessJsonLd = {
           profissional_id: data.get('profissional_id'),
           site: data.get('site'),
           nome: data.get('nome'),
+          cidade: data.get('regiao'),
           telefone: data.get('telefone'),
           tipo_servico: data.get('tipo_servico'),
           descricao: data.get('descricao'),
-          cidade: '',
         }),
       });
       const json = await res.json();
