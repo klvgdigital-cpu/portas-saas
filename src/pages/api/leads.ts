@@ -28,6 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
         telefone_cliente: telefone,
         tipo_servico: tipo_servico || 'Não informado',
         descricao: descricao || '',
+      ip,
         cidade: cidade || '',
         status: 'novo',
       })
@@ -39,6 +40,29 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Erro ao salvar solicitação' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Proteções anti-raspagem ---
+    // 1) Honeypot: campo invisível preenchido = robô. Finge sucesso, não salva nada.
+    if (body.site) {
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 2) Rate limit: máx 3 leads/hora por IP
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'desconhecido';
+    const umaHoraAtras = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: leadsRecentes } = await supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('ip', ip)
+      .gte('created_at', umaHoraAtras);
+
+    if ((leadsRecentes || 0) >= 3) {
+      return new Response(JSON.stringify({ error: 'Muitas solicitações. Tente novamente mais tarde.' }), {
+        status: 429, headers: { 'Content-Type': 'application/json' },
       });
     }
 
