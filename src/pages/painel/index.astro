@@ -71,7 +71,7 @@ import Footer from '../../components/Footer.astro';
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-leads">0</p><p class="text-sm text-gray-500">Leads recebidos<br/><span class="text-xs">Este mês</span></p></div><span class="text-2xl">📩</span></div></div>
           <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-views">0</p><p class="text-sm text-gray-500">Visualizações<br/><span class="text-xs">Do seu perfil</span></p></div><span class="text-2xl">👁️</span></div></div>
-          <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-aval">0</p><p class="text-sm text-gray-500">Avaliações<br/><span class="text-xs">Média de clientes</span></p></div><span class="text-2xl">⭐</span></div></div>
+          <div class="card"><div class="flex items-center justify-between"><div><p class="text-3xl font-bold" id="stat-aval">0</p><p class="text-sm text-gray-500">Leads no total<br/><span class="text-xs">Desde o cadastro</span></p></div><span class="text-2xl">📈</span></div></div>
         </div>
 
         <!-- Checklist de onboarding -->
@@ -203,7 +203,7 @@ import Footer from '../../components/Footer.astro';
   function render(p: any, m: any) {
     setText('stat-leads', String(m?.leads_mes ?? 0));
     setText('stat-views', String(m?.visualizacoes ?? 0));
-    setText('stat-aval', String(m?.avaliacoes_media ?? '—'));
+    setText('stat-aval', String(m?.leads_total ?? 0));
     renderChecklist(p);
     setText('nome-display', p.nome || 'Complete seu perfil');
     setText('email-display', p.email);

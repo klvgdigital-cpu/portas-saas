@@ -68,6 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
       cidade: cidade || '',
       estado: estado || 'SP',
       regioes: regioes || '',
+      aceite_termos_at: body.aceite_termos ? new Date().toISOString() : null,
       tipos_porta: tipos_porta || 'ambas',
       anos_experiencia: Number(anos_experiencia) || 1,
       plano: 'basico',

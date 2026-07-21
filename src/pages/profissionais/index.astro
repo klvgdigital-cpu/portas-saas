@@ -20,6 +20,35 @@ try {
       (p.cidade || '').toLowerCase().includes(r)
     );
   }
+
+  // ===== RODÍZIO JUSTO =====
+  // 1º grupo Pro, depois Básico/trial; dentro de cada grupo,
+  // quem está há mais tempo sem receber lead aparece primeiro
+  // (quem nunca recebeu lead tem prioridade máxima).
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const sbAdmin = createClient(
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    const { data: ultimos } = await sbAdmin.rpc('ultimo_lead_por_profissional');
+    const ultimoLead: Record<string, string> = {};
+    (ultimos || []).forEach((u: any) => { ultimoLead[u.profissional_id] = u.ultimo_lead; });
+
+    profissionais.sort((a: any, b: any) => {
+      const grupoA = a.plano === 'pro' ? 0 : 1;
+      const grupoB = b.plano === 'pro' ? 0 : 1;
+      if (grupoA !== grupoB) return grupoA - grupoB;
+      const la = ultimoLead[a.id];
+      const lb = ultimoLead[b.id];
+      if (!la && !lb) return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (!la) return -1;
+      if (!lb) return 1;
+      return new Date(la).getTime() - new Date(lb).getTime();
+    });
+  } catch {
+    // Sem RPC ainda: mantém ordenação padrão
+  }
 } catch {
   profissionais = [];
 }
