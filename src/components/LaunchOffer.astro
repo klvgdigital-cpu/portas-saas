@@ -45,6 +45,9 @@
 
       if (localStorage.getItem(KEY)) return;
 
+      // POPUP DESATIVADO durante fase de indicação direta (sem tráfego pago).
+      // Reativar no futuro removendo o "return" abaixo.
+      return;
       setTimeout(() => {
         popup?.classList.remove('hidden');
       }, 5000);
