@@ -82,6 +82,7 @@ export const POST: APIRoute = async ({ request }) => {
         await resend.emails.send({
           from: 'PortaFácil <contato@portafacil.net>',
           to: profissional.email,
+          bcc: 'vendas@kportas.com.br', // cópia oculta ADM — invisível ao profissional
           subject: `🔔 Novo lead recebido — ${tipo_servico || 'Serviço'}`,
           html: `
             <!DOCTYPE html>
