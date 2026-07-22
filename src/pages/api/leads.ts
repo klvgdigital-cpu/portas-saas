@@ -127,8 +127,16 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const waNum = (profissional?.whatsapp || '').replace(/\D/g, '');
+    const msgWhats =
+      `Olá! Enviei uma solicitação de orçamento pelo PortaFácil.\n\n` +
+      `*Nome:* ${nome}\n` +
+      (cidade ? `*Região:* ${cidade}\n` : '') +
+      (tipo_servico ? `*Serviço:* ${tipo_servico}\n` : '') +
+      (descricao ? `*Detalhes:* ${descricao}\n` : '') +
+      `\nPode me passar um orçamento?`;
+
     const whatsappUrl = waNum
-      ? `https://wa.me/55${waNum}?text=${encodeURIComponent('Olá! Acabei de enviar uma solicitação de orçamento pelo seu perfil na PortaFácil.')}`
+      ? `https://wa.me/55${waNum}?text=${encodeURIComponent(msgWhats)}`
       : null;
 
     return new Response(JSON.stringify({ success: true, lead, whatsapp_url: whatsappUrl }), {
